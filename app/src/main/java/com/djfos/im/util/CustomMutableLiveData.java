@@ -1,4 +1,4 @@
-package djfos.im.util;
+package com.djfos.im.util;
 
 import androidx.databinding.BaseObservable;
 import androidx.databinding.Observable;

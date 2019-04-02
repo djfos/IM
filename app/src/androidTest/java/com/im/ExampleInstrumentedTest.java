@@ -1,4 +1,4 @@
-package djfos.im;
+package com.im;
 
 import android.content.Context;
 import androidx.test.InstrumentationRegistry;
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
 
-        assertEquals("djfos.im", appContext.getPackageName());
+        assertEquals("com.im", appContext.getPackageName());
     }
 }

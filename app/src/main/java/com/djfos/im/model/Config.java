@@ -1,8 +1,8 @@
-package djfos.im.model;
+package com.djfos.im.model;
 
 import androidx.databinding.BaseObservable;
 import androidx.databinding.Bindable;
-import djfos.im.BR;
+import com.djfos.im.BR;
 
 
 public class Config extends BaseObservable {

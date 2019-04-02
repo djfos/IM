@@ -6,12 +6,12 @@
     app:startDestination="@id/homeFragment">
     <fragment
         android:id="@+id/adjustPage"
-        android:name="djfos.im.ui.AdjustPageFragment"
+        android:name="com.djfos.im.ui.AdjustPageFragment"
         android:label="fragment_adjust_page"
         tools:layout="@layout/fragment_adjust_page" />
     <fragment
         android:id="@+id/homeFragment"
-        android:name="djfos.im.ui.HomeFragment"
+        android:name="com.djfos.im.ui.HomeFragment"
         android:label="fragment_home"
         tools:layout="@layout/fragment_home" >
         <action

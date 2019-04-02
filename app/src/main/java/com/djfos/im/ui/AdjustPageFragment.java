@@ -1,15 +1,15 @@
-package djfos.im.ui;
+package com.djfos.im.ui;
 
 
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProviders;
-import djfos.im.R;
-import djfos.im.viewModel.SharedViewModel;
-import djfos.im.BR;
-import djfos.im.util.Processor;
-import djfos.im.databinding.FragmentAdjustPageBinding;
+import com.djfos.im.R;
+import com.djfos.im.viewModel.SharedViewModel;
+import com.djfos.im.BR;
+import com.djfos.im.util.Processor;
+import com.djfos.im.databinding.FragmentAdjustPageBinding;
 
 import android.util.Log;
 import android.view.LayoutInflater;

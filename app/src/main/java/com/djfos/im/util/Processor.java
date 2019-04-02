@@ -1,11 +1,11 @@
-package djfos.im.util;
+package com.djfos.im.util;
 
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import djfos.im.model.Config;
+import com.djfos.im.model.Config;
 
 import android.widget.ImageView;
 import android.widget.ViewSwitcher;

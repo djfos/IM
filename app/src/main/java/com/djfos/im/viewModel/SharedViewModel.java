@@ -1,13 +1,9 @@
-package djfos.im.viewModel;
+package com.djfos.im.viewModel;
 
-
-import android.content.Intent;
-import android.net.Uri;
-import android.provider.MediaStore;
 
 import androidx.lifecycle.ViewModel;
-import djfos.im.model.Config;
-import djfos.im.util.CustomMutableLiveData;
+import com.djfos.im.model.Config;
+import com.djfos.im.util.CustomMutableLiveData;
 
 public class SharedViewModel extends ViewModel {
     public CustomMutableLiveData<Config> config = new CustomMutableLiveData<>();

@@ -1,4 +1,4 @@
-package djfos.im.util;
+package com.djfos.im.util;
 
 import android.graphics.Bitmap;
 import androidx.annotation.NonNull;
@@ -13,7 +13,7 @@ import org.opencv.android.Utils;
 import org.opencv.core.Mat;
 import org.opencv.imgproc.Imgproc;
 
-import djfos.im.model.Config;
+import com.djfos.im.model.Config;
 
 public class Transformation extends BitmapTransformation {
     static final String ID = "Transformation";
@@ -33,10 +33,7 @@ public class Transformation extends BitmapTransformation {
         Mat threshold = new Mat();
         Imgproc.threshold(gray,threshold,config.getThreshold(),255,Imgproc.THRESH_BINARY);
         Utils.matToBitmap(threshold,toTransform);
-//        FastBitmap fb = new FastBitmap(toTransform);
-//        new Grayscale().applyInPlace(fb);
-//        new Threshold(config.getThreshold()).applyInPlace(fb);
-//        fb.toBitmap();
+
 
         return toTransform;
     }

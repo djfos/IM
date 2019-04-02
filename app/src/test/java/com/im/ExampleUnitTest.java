@@ -1,4 +1,4 @@
-package djfos.im;
+package com.im;
 
 import org.junit.Test;
 

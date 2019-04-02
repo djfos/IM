@@ -3,7 +3,7 @@ apply plugin: 'com.android.application'
 android {
     compileSdkVersion 28
     defaultConfig {
-        applicationId "djfos.im"
+        applicationId "com.djfos.im"
         targetSdkVersion 28
         minSdkVersion 23
         versionCode 1
