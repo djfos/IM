@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
-import java.util.Objects;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -34,7 +33,6 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.navigation.Navigation;
 
-import static android.app.Activity.RESULT_CANCELED;
 import static android.app.Activity.RESULT_OK;
 
 
@@ -44,6 +42,7 @@ public class HomeFragment extends Fragment {
     private static final int REQUEST_IMAGE_PICK = 2;
     private static final int PERMISSIONS_WRITE_EXTERNAL_STORAGE = 3;
     private SharedViewModel model;
+    private File image;
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
@@ -70,28 +69,20 @@ public class HomeFragment extends Fragment {
         switch (requestCode) {
             case REQUEST_IMAGE_CAPTURE:
                 if (resultCode == RESULT_OK) {
-                    Uri uri = Uri.fromFile(model.image);
+                    Uri uri = Uri.fromFile(image);
                     Log.d(TAG, "onActivityResult: uri " + uri);
-                    Objects.requireNonNull(model.config.getValue()).setUri(uri);
-                    model.image = null;
+                    model.uri.setValue(uri);
+                    image = null;
                     Navigation.findNavController(requireView()).navigate(R.id.action_homeFragment_to_adjustPage);
-                }
-                if (resultCode == RESULT_CANCELED) {
-                    model.image = null;
                 }
                 break;
             case REQUEST_IMAGE_PICK:
                 if (resultCode == RESULT_OK) {
                     Uri uri = (data.getData());
                     Log.d(TAG, "onActivityResult: uri " + uri);
-                    Objects.requireNonNull(model.config.getValue()).setUri(uri);
-                    model.image = null;
+                    model.uri.setValue(uri);
 
                     Navigation.findNavController(requireView()).navigate(R.id.action_homeFragment_to_adjustPage);
-                    Log.d(TAG, "onActivityResult: nav ed");
-                }
-                if (resultCode == RESULT_CANCELED) {
-                    model.image = null;
                 }
                 break;
         }
@@ -116,7 +107,7 @@ public class HomeFragment extends Fragment {
                 if (photoFile != null) {
                     Uri photoURI = FileProvider.getUriForFile(requireActivity(), "com.djfos.fileprovider", photoFile);
                     intent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
-                    model.image = photoFile;
+                    image = photoFile;
                     startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
                 }
             }
@@ -127,7 +118,10 @@ public class HomeFragment extends Fragment {
         File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
         File appImagePath = new File(path, "im");
         if (!appImagePath.exists()) {
-            boolean mkdirs = appImagePath.mkdirs();
+            if (!appImagePath.mkdirs()) {
+                requestPermission();
+                return null;
+            }
         }
         return appImagePath;
     }

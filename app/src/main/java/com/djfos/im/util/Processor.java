@@ -1,91 +1,91 @@
 package com.djfos.im.util;
 
-import android.graphics.drawable.Drawable;
-import android.net.Uri;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Lifecycle;
-import androidx.lifecycle.LifecycleObserver;
-import androidx.lifecycle.LifecycleOwner;
-import androidx.lifecycle.OnLifecycleEvent;
-
-import com.djfos.im.model.Config;
-
+import android.graphics.Bitmap;
 import android.util.Log;
 import android.widget.ImageView;
 import android.widget.ViewSwitcher;
 
-import com.bumptech.glide.load.DataSource;
-import com.bumptech.glide.load.engine.GlideException;
-import com.bumptech.glide.request.RequestListener;
-import com.bumptech.glide.request.RequestOptions;
-import com.bumptech.glide.request.target.Target;
+import com.bumptech.glide.load.engine.bitmap_recycle.BitmapPool;
+import com.djfos.im.model.Config;
+import com.djfos.im.viewModel.SharedViewModel;
+
+import org.opencv.android.Utils;
+import org.opencv.core.Mat;
+import org.opencv.imgproc.Imgproc;
+
+import java.util.concurrent.TimeUnit;
+
+import androidx.lifecycle.LifecycleObserver;
+import io.reactivex.Observer;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.subjects.PublishSubject;
 
 public class Processor implements LifecycleObserver {
-    static final String TAG = "Processor";
+    private static final String TAG = "Processor";
     private final ViewSwitcher viewSwitcher;
-    private RequestOptions options;
-    private GlideRequest<Drawable> requestBuilder;
-    private boolean first = true;
-    private RequestListener<Drawable> ls;
-    Lifecycle lifecycle;
+    private SharedViewModel model;
+    private BitmapPool pool;
+    private PublishSubject<Integer> subject = PublishSubject.create();
+    private Bitmap lastResult;
 
-    public Processor(Fragment fragment, ViewSwitcher vs, Config config) {
-        lifecycle = fragment.getLifecycle();
+    public Processor(BitmapPool pool, ViewSwitcher vs, SharedViewModel viewModel) {
+        this.model = viewModel;
+        this.pool = pool;
         viewSwitcher = vs;
-        ls = getListener();
-        options = new RequestOptions();
-        Transformation transformation = new Transformation(config);
-        options.transform(transformation);
-        requestBuilder = GlideApp.with(fragment)
-                .load(config.getUri())
-                .skipMemoryCache(true);
+        subject.throttleFirst(20, TimeUnit.MILLISECONDS)
+                .subscribe(new Observer<Integer>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
+                        Log.d(TAG, "onSubscribe() called with: d = [" + d + "]");
+                    }
 
+                    @Override
+                    public void onNext(Integer integer) {
+                        Log.d(TAG, "onNext() called with: integer = [" + integer + "]");
+                        ImageView next = (ImageView) viewSwitcher.getNextView();
+                        next.setImageBitmap(process());
+                        viewSwitcher.showNext();
+                        Log.d(TAG, "onNext: done");
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        Log.d(TAG, "onError() called with: e = [" + e + "]");
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        Log.d(TAG, "onComplete() called");
+                    }
+                });
     }
 
     public void update() {
-        if (first) {
-            ImageView current = (ImageView) viewSwitcher.getCurrentView();
-            requestBuilder
-                    .apply(options)
-                    .into(current);
-            first = false;
-        } else {
-            ImageView current = (ImageView) viewSwitcher.getCurrentView();
-            ImageView next = (ImageView) viewSwitcher.getNextView();
-            options.override(current.getWidth(), current.getHeight());
-            requestBuilder
-                    .apply(options)
-                    .addListener(ls)
-                    .into(next);
+        subject.onNext(0);
+        Log.d(TAG, "update: ");
+    }
+
+    private Bitmap process() {
+        if (lastResult != null) {
+            pool.put(lastResult);
         }
-    }
 
+        Bitmap image = model.image.getValue();
+        Config config = model.config.getValue();
+        //
+        Mat origin = new Mat();
+        Utils.bitmapToMat(image, origin);
+        //
+        Mat gray = new Mat();
+        Imgproc.cvtColor(origin, gray, Imgproc.COLOR_RGBA2GRAY);
+        //
+        Mat threshold = new Mat();
+        Imgproc.threshold(gray, threshold, config.getThreshold(), 255, Imgproc.THRESH_BINARY);
+        //
+        Bitmap result = pool.getDirty(image.getWidth(), image.getHeight(), Bitmap.Config.ARGB_8888);
+        Utils.matToBitmap(threshold, result);
 
-    private RequestListener<Drawable> getListener() {
-        return new RequestListener<Drawable>() {
-            @Override
-            public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
-                viewSwitcher.showNext();
-                Log.d(TAG, "onResourceReady: switched");
-
-                return false;
-            }
-
-            @Override
-            public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
-                viewSwitcher.showNext();
-                Log.d(TAG, "onResourceReady: switched");
-                return false;
-            }
-        };
-    }
-
-    @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
-    private void reset(){
-        first = false;
-        Log.d(TAG, "reset: yeah");
+        lastResult = result;
+        return result;
     }
 }
