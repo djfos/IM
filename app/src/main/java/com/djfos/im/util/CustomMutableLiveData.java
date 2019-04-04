@@ -15,7 +15,7 @@ public class CustomMutableLiveData<T extends BaseObservable>
         value.addOnPropertyChangedCallback(callback);
     }
 
-    Observable.OnPropertyChangedCallback callback = new Observable.OnPropertyChangedCallback() {
+    private Observable.OnPropertyChangedCallback callback = new Observable.OnPropertyChangedCallback() {
         @Override
         public void onPropertyChanged(Observable sender, int propertyId) {
             //Trigger LiveData observer on change of any property in object

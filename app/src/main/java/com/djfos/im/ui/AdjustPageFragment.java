@@ -3,8 +3,10 @@ package com.djfos.im.ui;
 
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProviders;
+
 import com.djfos.im.R;
 import com.djfos.im.viewModel.SharedViewModel;
 import com.djfos.im.BR;
@@ -19,51 +21,23 @@ import android.widget.ViewSwitcher;
 
 
 public class AdjustPageFragment extends Fragment {
-    static final String TAG = "AdjustPageFragment";
-
-    private static final String ARG_PARAM1 = "uri";
-
-
-    private String uri;
-
-    private SharedViewModel model;
-    private FragmentAdjustPageBinding binding;
-
-    public static AdjustPageFragment newInstance(String uri) {
-        AdjustPageFragment fragment = new AdjustPageFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, uri);
-        fragment.setArguments(args);
-        return fragment;
-    }
+    private static final String TAG = "AdjustPageFragment";
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            uri = getArguments().getString(ARG_PARAM1);
-        }
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-
-
-        binding = FragmentAdjustPageBinding.inflate(inflater, container, false);
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        FragmentAdjustPageBinding binding = FragmentAdjustPageBinding.inflate(inflater, container, false);
         binding.setLifecycleOwner(this);
-        model = ViewModelProviders.of( getActivity()).get(SharedViewModel.class);
+        SharedViewModel model = ViewModelProviders.of(requireActivity()).get(SharedViewModel.class);
         binding.setVariable(BR.vm, model);
-
-        Processor processor = new Processor(this,binding.getRoot().<ViewSwitcher>findViewById(R.id.resultView), model.config.getValue());
-        Log.i(TAG, "onCreateView: ");
+        Processor processor = new Processor(this, binding.getRoot().<ViewSwitcher>findViewById(R.id.resultView), model.config.getValue());
+        getLifecycle().addObserver(processor);
         model.config.observe(this, (config) -> {
             processor.update();
+//            Log.d(TAG, "onCreateView: update" + config.getThreshold());
         });
 
         return binding.getRoot();
 
     }
-
 
 }

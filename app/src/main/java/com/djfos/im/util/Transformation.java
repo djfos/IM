@@ -19,7 +19,7 @@ public class Transformation extends BitmapTransformation {
     static final String ID = "Transformation";
     private final Config config;
 
-    public Transformation(Config config) {
+    Transformation(Config config) {
         this.config = config;
     }
 
@@ -27,15 +27,17 @@ public class Transformation extends BitmapTransformation {
     protected Bitmap transform(@NonNull BitmapPool pool, @NonNull Bitmap toTransform, int outWidth, int outHeight) {
         Mat origin = new Mat();
         Utils.bitmapToMat(toTransform,origin);
-        Mat gray = new Mat();
 
+        Mat gray = new Mat();
         Imgproc.cvtColor(origin,gray,Imgproc.COLOR_RGBA2GRAY);
-        Mat threshold = new Mat();
-        Imgproc.threshold(gray,threshold,config.getThreshold(),255,Imgproc.THRESH_BINARY);
-        Utils.matToBitmap(threshold,toTransform);
+
+//        Mat threshold = new Mat();
+//        Imgproc.threshold(gray,threshold,config.getThreshold(),255,Imgproc.THRESH_BINARY);
+        Utils.matToBitmap(gray,toTransform);
 
 
         return toTransform;
+
     }
 
     @Override

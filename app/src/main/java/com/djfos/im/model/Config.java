@@ -1,19 +1,22 @@
 package com.djfos.im.model;
 
+import android.net.Uri;
+
 import androidx.databinding.BaseObservable;
 import androidx.databinding.Bindable;
 import com.djfos.im.BR;
 
 
 public class Config extends BaseObservable {
+
     private int threshold;
-    private String uri;
+    private Uri uri;
     @Bindable
-    public String getUri() {
+    public Uri getUri() {
         return uri;
     }
 
-    public void setUri(String uri) {
+    public void setUri(Uri uri) {
         this.uri = uri;
         notifyPropertyChanged(BR.uri);
 

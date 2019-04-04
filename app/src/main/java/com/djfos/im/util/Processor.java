@@ -3,10 +3,17 @@ package com.djfos.im.util;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Lifecycle;
+import androidx.lifecycle.LifecycleObserver;
+import androidx.lifecycle.LifecycleOwner;
+import androidx.lifecycle.OnLifecycleEvent;
+
 import com.djfos.im.model.Config;
 
+import android.util.Log;
 import android.widget.ImageView;
 import android.widget.ViewSwitcher;
 
@@ -16,27 +23,28 @@ import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.Target;
 
-public class Processor {
+public class Processor implements LifecycleObserver {
     static final String TAG = "Processor";
     private final ViewSwitcher viewSwitcher;
-    private Transformation transformation;
     private RequestOptions options;
     private GlideRequest<Drawable> requestBuilder;
-    private String uri = "http://www.laverocks.co.uk/gilslandmag/desktops/tup_800.jpg";
     private boolean first = true;
-    RequestListener<Drawable> ls;
+    private RequestListener<Drawable> ls;
+    Lifecycle lifecycle;
 
     public Processor(Fragment fragment, ViewSwitcher vs, Config config) {
+        lifecycle = fragment.getLifecycle();
         viewSwitcher = vs;
         ls = getListener();
         options = new RequestOptions();
-        transformation = new Transformation(config);
+        Transformation transformation = new Transformation(config);
         options.transform(transformation);
         requestBuilder = GlideApp.with(fragment)
-                .load(Uri.parse(uri))
+                .load(config.getUri())
                 .skipMemoryCache(true);
 
     }
+
     public void update() {
         if (first) {
             ImageView current = (ImageView) viewSwitcher.getCurrentView();
@@ -53,7 +61,6 @@ public class Processor {
                     .addListener(ls)
                     .into(next);
         }
-
     }
 
 
@@ -62,14 +69,23 @@ public class Processor {
             @Override
             public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
                 viewSwitcher.showNext();
+                Log.d(TAG, "onResourceReady: switched");
+
                 return false;
             }
 
             @Override
             public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
                 viewSwitcher.showNext();
+                Log.d(TAG, "onResourceReady: switched");
                 return false;
             }
         };
+    }
+
+    @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
+    private void reset(){
+        first = false;
+        Log.d(TAG, "reset: yeah");
     }
 }
