@@ -8,7 +8,11 @@
         android:id="@+id/adjustPage"
         android:name="com.djfos.im.ui.AdjustPageFragment"
         android:label="fragment_adjust_page"
-        tools:layout="@layout/fragment_adjust_page" />
+        tools:layout="@layout/fragment_adjust_page" >
+        <argument
+            android:name="draft"
+            app:argType="com.djfos.im.model.Draft" />
+    </fragment>
     <fragment
         android:id="@+id/homeFragment"
         android:name="com.djfos.im.ui.HomeFragment"
@@ -18,4 +22,7 @@
             android:id="@+id/action_homeFragment_to_adjustPage"
             app:destination="@id/adjustPage" />
     </fragment>
+    <action
+        android:id="@+id/action_global_homeFragment"
+        app:destination="@id/homeFragment" />
 </navigation>

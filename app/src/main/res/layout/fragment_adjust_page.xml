@@ -9,7 +9,7 @@
 
         <variable
             name="vm"
-            type="com.djfos.im.viewModel.SharedViewModel" />
+            type="com.djfos.im.viewModel.AdjustPageViewModel" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -36,7 +36,7 @@
             android:layout_marginEnd="8dp"
             android:layout_marginBottom="108dp"
             android:max="256"
-            android:onProgressChanged="@{(seekBar, progress, fromUser) -> vm.setThreshold(progress)}"
+            android:onProgressChanged="@{(_, progress, fromUser) -> vm.setThreshold(progress)}"
             android:progress="0"
             android:thumb="@android:drawable/radiobutton_off_background"
             app:layout_constraintBottom_toBottomOf="parent"

@@ -7,7 +7,7 @@ import android.widget.ViewSwitcher;
 
 import com.bumptech.glide.load.engine.bitmap_recycle.BitmapPool;
 import com.djfos.im.model.Config;
-import com.djfos.im.viewModel.SharedViewModel;
+import com.djfos.im.viewModel.AdjustPageViewModel;
 
 import org.opencv.android.Utils;
 import org.opencv.core.Mat;
@@ -23,12 +23,12 @@ import io.reactivex.subjects.PublishSubject;
 public class Processor implements LifecycleObserver {
     private static final String TAG = "Processor";
     private final ViewSwitcher viewSwitcher;
-    private SharedViewModel model;
+    private AdjustPageViewModel model;
     private BitmapPool pool;
     private PublishSubject<Integer> subject = PublishSubject.create();
     private Bitmap lastResult;
 
-    public Processor(BitmapPool pool, ViewSwitcher vs, SharedViewModel viewModel) {
+    public Processor(BitmapPool pool, ViewSwitcher vs, AdjustPageViewModel viewModel) {
         this.model = viewModel;
         this.pool = pool;
         viewSwitcher = vs;
@@ -70,8 +70,8 @@ public class Processor implements LifecycleObserver {
             pool.put(lastResult);
         }
 
-        Bitmap image = model.image.getValue();
-        Config config = model.config.getValue();
+        Bitmap image = model.getImage().getValue();
+        Config config = model.getConfig().getValue();
         //
         Mat origin = new Mat();
         Utils.bitmapToMat(image, origin);
