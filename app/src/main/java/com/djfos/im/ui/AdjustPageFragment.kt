@@ -1,85 +1,138 @@
 package com.djfos.im.ui
 
 
+import android.graphics.Bitmap
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.Menu
-import android.view.MenuInflater
-import android.view.MenuItem
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
+import android.widget.ImageView
 import android.widget.ViewSwitcher
-
-import com.djfos.im.BR
-import com.djfos.im.R
-import com.djfos.im.databinding.FragmentAdjustPageBinding
-import com.djfos.im.model.Draft
-import com.djfos.im.util.GlideApp
-import com.djfos.im.util.Processor
-import com.djfos.im.viewModel.AdjustPageViewModel
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.fragment.findNavController
+import com.djfos.im.R
+import com.djfos.im.databinding.FragmentAdjustPageBinding
+import com.djfos.im.filter.FilterType
+import com.djfos.im.filter.typeMap
+import com.djfos.im.model.Draft
+import com.djfos.im.util.GlideApp
+import com.djfos.im.util.createView
+import kotlinx.android.synthetic.main.fragment_adjust_page.*
+import org.opencv.android.Utils
+import org.opencv.core.Mat
+import kotlin.reflect.full.createInstance
 
+private const val TAG = "AdjustPageFragment"
 
 class AdjustPageFragment : Fragment() {
-    lateinit var draft: Draft
+    private val db = (requireActivity() as MainActivity).db
+    private val draftDao = db.draftDao()
+    private lateinit var viewModel: AdjustPageViewModel
+    private val pool = GlideApp.get(requireContext()).bitmapPool
+    private lateinit var viewSwitcher: ViewSwitcher
+    private var previous: Bitmap? = null
+    private lateinit var draft: Draft
+
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        setHasOptionsMenu(true)
-
         val binding = FragmentAdjustPageBinding.inflate(inflater, container, false)
-        binding.lifecycleOwner = this
+        viewSwitcher = binding.resultView
 
-        val model = ViewModelProviders.of(this).get<AdjustPageViewModel>(AdjustPageViewModel::class.java)
-        binding.setVariable(BR.vm, model)
+        val id = AdjustPageFragmentArgs.fromBundle(arguments!!).draftId
+        draft = draftDao.find(id)
 
-        val pool = GlideApp.get(requireContext()).bitmapPool
-        val viewSwitcher = binding.root.findViewById(R.id.resultView) as ViewSwitcher
-        val processor = Processor(pool, viewSwitcher, model)
+        val bitmap = GlideApp.with(requireContext())
+                .asBitmap()
+                .load(draft.sourceImageUriString)
+                .submit()
+                .get()
 
-        draft = AdjustPageFragmentArgs.fromBundle(arguments!!).draft
-        draft.onReady = { image ->
-            model.config.value = draft.config
-            model.image.value = image
-            model.config.observe(this, Observer { processor.update() })
-        }
-        draft.load(this)
+        val origin = Mat()
+        Utils.bitmapToMat(bitmap, origin)
+        pool.put(bitmap)
 
+        viewModel = ViewModelProviders
+                .of(this, Factory(draft, origin))
+                .get<AdjustPageViewModel>(AdjustPageViewModel::class.java)
+
+        setHasOptionsMenu(true)
 
         return binding.root
     }
 
-
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        Log.d(TAG, "onCreateOptionsMenu: inflate menu")
         inflater.inflate(R.menu.adjust_page_menu, menu)
-        super.onCreateOptionsMenu(menu, inflater)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.done -> {
-                draft.save()
+                save(draft)
                 Log.d(TAG, "onOptionsItemSelected: save")
                 findNavController().navigate(R.id.action_global_homeFragment)
                 true
             }
-
             R.id.drop -> {
-                draft.drop()
+                drop(draft)
                 Log.d(TAG, "onOptionsItemSelected: drop")
                 findNavController().navigate(R.id.action_global_homeFragment)
                 true
             }
-
             else -> super.onOptionsItemSelected(item)
         }
+
     }
 
-    companion object {
-        private val TAG = "AdjustPageFragment"
+    /**
+     * get the current result
+     */
+    private fun process(): Mat {
+        return viewModel.process()
+    }
+
+
+    fun apply(type: FilterType) {
+        val cls = typeMap[type]
+        if (cls == null) {
+            Log.e(TAG, "apply: no class found that matches type $type", null)
+            return
+        }
+        val filter = cls.createInstance()
+        val (layout, liveData) = createView(requireContext(), filter)
+
+        liveData.observe({ lifecycle }) {
+            draw(process())
+        }
+
+        control_panel.removeAllViews()
+        control_panel.addView(layout)
+    }
+
+    private fun draw(mat: Mat) {
+        val bitmap = pool.getDirty(mat.width(), mat.height(), Bitmap.Config.ARGB_8888)
+        Utils.matToBitmap(mat, bitmap)
+        if (previous != null) pool.put(previous)
+        previous = bitmap
+
+        val next = viewSwitcher.nextView as ImageView
+        next.setImageBitmap(bitmap)
+        viewSwitcher.showNext()
+    }
+
+    private fun save(draft: Draft) {
+        draftDao.update(draft)
+        gotHome()
+    }
+
+    private fun drop(draft: Draft) {
+        draftDao.delete(draft)
+        gotHome()
+    }
+
+    private fun gotHome() {
+        findNavController().navigate(HomeFragmentDirections.actionGlobalHomeFragment())
     }
 }
+
+
+

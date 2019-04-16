@@ -2,24 +2,24 @@ package com.djfos.im.ui
 
 import android.os.Bundle
 import android.util.Log
-import android.view.View
-
-import com.djfos.im.R
-
-import org.opencv.android.OpenCVLoader
-
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.Toolbar
+import androidx.room.Room
+import com.djfos.im.databinding.ActivityMainBinding
+import com.djfos.im.model.AppDataBase
+import org.opencv.android.OpenCVLoader
 
 
 class MainActivity : AppCompatActivity() {
+    val db: AppDataBase by lazy {
+        Room.databaseBuilder(applicationContext, AppDataBase::class.java, "im-db").build()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-        val toolbar = findViewById<Toolbar>(R.id.toolbar)
+        val binding = ActivityMainBinding.inflate(layoutInflater)
+        val toolbar = binding.toolbar
         setSupportActionBar(toolbar)
-        supportActionBar!!.setDisplayShowTitleEnabled(false)
+        setContentView(binding.root)
     }
 
 
@@ -33,6 +33,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     companion object {
-        internal val TAG = "MainActivity"
+        private const val TAG = "MainActivity"
     }
 }

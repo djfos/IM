@@ -10,8 +10,8 @@
         android:label="fragment_adjust_page"
         tools:layout="@layout/fragment_adjust_page" >
         <argument
-            android:name="draft"
-            app:argType="com.djfos.im.model.Draft" />
+            android:name="draftId"
+            app:argType="long" />
     </fragment>
     <fragment
         android:id="@+id/homeFragment"

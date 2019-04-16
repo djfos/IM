@@ -5,57 +5,22 @@
     xmlns:tools="http://schemas.android.com/tools"
     >
 
-    <data>
-
-        <variable
-            name="vm"
-            type="com.djfos.im.viewModel.AdjustPageViewModel" />
-    </data>
-
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/linearLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-
-        <TextView
-            android:id="@+id/textView"
-            android:layout_width="77dp"
-            android:layout_height="30dp"
-            android:layout_marginBottom="76dp"
-            android:background="@color/colorPrimary"
-            android:text="@{String.valueOf(vm.config.threshold)}"
-            app:layout_constraintBottom_toTopOf="@+id/seekBar"
-            app:layout_constraintEnd_toEndOf="@+id/seekBar"
-            app:layout_constraintStart_toStartOf="@+id/seekBar" />
-
-        <SeekBar
-            android:id="@+id/seekBar"
-            android:layout_width="247dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginEnd="8dp"
-            android:layout_marginBottom="108dp"
-            android:max="256"
-            android:onProgressChanged="@{(_, progress, fromUser) -> vm.setThreshold(progress)}"
-            android:progress="0"
-            android:thumb="@android:drawable/radiobutton_off_background"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
 
         <ViewSwitcher
             android:id="@+id/resultView"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_marginStart="8dp"
-            android:layout_marginTop="93dp"
+            android:layout_marginTop="9dp"
             android:layout_marginEnd="8dp"
-            android:layout_marginBottom="270dp"
-            app:layout_constraintBottom_toTopOf="@+id/button"
+            android:layout_marginBottom="8dp"
+            app:layout_constraintBottom_toTopOf="@+id/control_panel"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.20999998">
+            app:layout_constraintTop_toTopOf="parent">
 
             <ImageView
                 android:id="@+id/im1"
@@ -74,18 +39,17 @@
                 tools:srcCompat="@tools:sample/avatars" />
         </ViewSwitcher>
 
-        <Button
-            android:id="@+id/button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="32dp"
-            android:text="Button"
+        <FrameLayout
+            android:id="@+id/control_panel"
+            android:layout_width="395dp"
+            android:layout_height="294dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginBottom="8dp"
+            android:orientation="vertical"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/resultView"
-            android:onClick="@{(v) -> vm.increase()}"
-            />
+            app:layout_constraintStart_toStartOf="parent"/>
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>
