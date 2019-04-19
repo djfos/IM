@@ -3,15 +3,23 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/drop"
-        android:icon="@drawable/ic_delete_black_24dp"
-        android:title="@string/drop"
-        app:showAsAction="ifRoom" />
+    android:id="@+id/drop"
+    android:icon="@drawable/ic_delete_black_24dp"
+    android:title="@string/drop"
+    app:showAsAction="ifRoom" />
     <item
         android:id="@+id/done"
         android:icon="@drawable/ic_done_black_24dp"
         android:title="@string/done"
         app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/filter_menu"
+        android:icon="@drawable/ic_tune_black_24dp"
+        android:title="@string/filter_menu"
+        app:showAsAction="ifRoom">
+        <menu></menu>
+    </item>
 
 
 </menu>

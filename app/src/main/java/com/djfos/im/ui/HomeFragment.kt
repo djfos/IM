@@ -10,29 +10,54 @@ import android.util.Log
 import android.view.*
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.djfos.im.R
 import com.djfos.im.databinding.FragmentHomeBinding
-import com.djfos.im.model.Draft
-import com.djfos.im.util.createImageFile
-import com.djfos.im.util.hasPermission
-import com.djfos.im.util.photoPath
-import com.djfos.im.util.requestPermission
+import com.djfos.im.model.DraftAdapter
+import com.djfos.im.util.*
+import com.djfos.im.util.Injector.provideHomePageViewModelFactory
+import com.djfos.im.viewModel.HomePageViewModel
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.IOException
 
 
 class HomeFragment : Fragment() {
     private var image: File? = null
-    private val db = (requireActivity() as MainActivity).db
-    private val draftDao = db.draftDao()
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    private lateinit var viewModel: HomePageViewModel
+
+    override fun onCreateView(
+            inflater: LayoutInflater,
+            container: ViewGroup?,
+            savedInstanceState: Bundle?
+    ): View? {
         val binding = FragmentHomeBinding.inflate(inflater, container, false)
+
+        viewModel = ViewModelProviders
+                .of(this, provideHomePageViewModelFactory(requireContext()))
+                .get(HomePageViewModel::class.java)
+
+        val draftAdapter = DraftAdapter()
+        val linearLayoutManager = LinearLayoutManager(requireContext())
+
+        viewModel.allDrafts.observe({ lifecycle }) { drafts -> draftAdapter.setDraft(drafts) }
+        binding.draftList.apply {
+            setHasFixedSize(true)
+            layoutManager = linearLayoutManager
+            adapter = draftAdapter
+        }
+
         setHasOptionsMenu(true)
         return binding.root
     }
 
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+    override fun onCreateOptionsMenu(
+            menu: Menu,
+            inflater: MenuInflater
+    ) {
         Log.d(TAG, "onCreateOptionsMenu: ")
         inflater.inflate(R.menu.home_page_menu, menu)
     }
@@ -51,27 +76,31 @@ class HomeFragment : Fragment() {
         }
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+    override fun onActivityResult(
+            requestCode: Int,
+            resultCode: Int,
+            data: Intent?
+    ) {
         when (requestCode) {
             REQUEST_IMAGE_CAPTURE -> if (resultCode == RESULT_OK) {
                 val uri = Uri.fromFile(image)
                 Log.d(TAG, "onActivityResult: uri $uri")
                 image = null
-
-                val draft = Draft(uri.toString())
-                val id = draftDao.insert(draft)
-                val action = HomeFragmentDirections.actionHomeFragmentToAdjustPage(id)
-                findNavController().navigate(action)
+                toAdjustPage(uri)
             }
             REQUEST_IMAGE_PICK -> if (resultCode == RESULT_OK) {
                 if (data == null) return
                 val uri = data.data ?: return
                 Log.d(TAG, "onActivityResult: uri $uri")
-                val draft = Draft(uri.toString())
-                val id = draftDao.insert(draft)
-                val action = HomeFragmentDirections.actionHomeFragmentToAdjustPage(id)
-                findNavController().navigate(action)
+                toAdjustPage(uri)
             }
+        }
+    }
+
+    private fun toAdjustPage(uri: Uri) {
+        GlobalScope.launch {
+            val id = viewModel.createDraft(uri.toString())
+            findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToAdjustPage(id))
         }
     }
 
@@ -85,7 +114,7 @@ class HomeFragment : Fragment() {
         if (intent.resolveActivity(requireActivity().packageManager) != null) {
             try {
                 val photoFile = createImageFile(photoPath)
-                val photoURI = FileProvider.getUriForFile(requireActivity(), "com.djfos.fileprovider", photoFile)
+                val photoURI = FileProvider.getUriForFile(requireActivity(), FILE_PROVIDER, photoFile)
                 intent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
                 image = photoFile
                 startActivityForResult(intent, REQUEST_IMAGE_CAPTURE)

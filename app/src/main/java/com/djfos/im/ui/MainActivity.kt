@@ -10,16 +10,13 @@ import org.opencv.android.OpenCVLoader
 
 
 class MainActivity : AppCompatActivity() {
-    val db: AppDataBase by lazy {
-        Room.databaseBuilder(applicationContext, AppDataBase::class.java, "im-db").build()
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         val toolbar = binding.toolbar
         setSupportActionBar(toolbar)
-        setContentView(binding.root)
     }
 
 

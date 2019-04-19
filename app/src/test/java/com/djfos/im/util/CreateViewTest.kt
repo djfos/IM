@@ -56,4 +56,16 @@ class CreateViewTest {
 
         assertThat(number, equalTo(1))
     }
+
+    @Test
+    fun `when seek bar progress change,field should be synchronized`() {
+        val (layout, liveData) = createView(context, filter)
+        val seekBar = layout[0] as SeekBar
+
+        var number = 0
+        liveData.observeForever { number++ }
+        seekBar.progress = 66
+
+        assertThat(filter.threshold, equalTo(66))
+    }
 }

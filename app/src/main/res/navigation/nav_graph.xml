@@ -10,7 +10,7 @@
         android:label="fragment_adjust_page"
         tools:layout="@layout/fragment_adjust_page" >
         <argument
-            android:name="draftId"
+            android:name="id"
             app:argType="long" />
     </fragment>
     <fragment

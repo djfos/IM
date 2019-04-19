@@ -6,4 +6,5 @@
     <string name="drop">drop</string>
     <string name="camera">camera</string>
     <string name="gallery">gallery</string>
+    <string name="filter_menu">filter</string>
 </resources>
