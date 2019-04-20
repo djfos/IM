@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.djfos.im.util.DATABASE_NAME
 
-@Database(entities = [Draft::class], version = 1)
+@Database(entities = [Draft::class], version = 2)
 @TypeConverters(Converter::class)
 abstract class AppDataBase : RoomDatabase() {
     abstract fun draftDao(): DraftDao
@@ -23,7 +23,9 @@ abstract class AppDataBase : RoomDatabase() {
         }
 
         private fun buildDatabase(context: Context): AppDataBase {
-            return Room.databaseBuilder(context, AppDataBase::class.java, DATABASE_NAME).build()
+            return Room.databaseBuilder(context, AppDataBase::class.java, DATABASE_NAME)
+                    .addMigrations(MIGRATION_1_2)
+                    .build()
         }
     }
 }

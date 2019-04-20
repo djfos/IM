@@ -20,7 +20,7 @@ import com.djfos.im.filter.typeMap
 import com.djfos.im.model.Draft
 import com.djfos.im.util.GlideApp
 import com.djfos.im.util.Injector
-import com.djfos.im.util.createView
+import com.djfos.im.util.createControlPanel
 import com.djfos.im.viewModel.AdjustPageViewModel
 import kotlinx.android.synthetic.main.fragment_adjust_page.*
 import kotlinx.coroutines.Dispatchers
@@ -52,40 +52,47 @@ class AdjustPageFragment : Fragment() {
 
         viewModel = ViewModelProviders.of(this, factory).get(AdjustPageViewModel::class.java)
 
-        // decode image to mat
-        val fragment = this
         viewModel.draft.observe({ lifecycle }) { draft ->
-            Log.d(TAG, "onCreateView: viewModel.draft.observe called")
-            // unsubscribe here to prevent the null pointer when drop the draft
-            // also,the draft is no need to change
-            viewModel.draft.removeObservers(fragment)
+            draft?.let { initFragment(draft) }
+        }
 
-            GlobalScope.launch {
-                val bitmap = GlideApp.with(fragment)
-                        .asBitmap()
-                        .load(draft.sourceImageUriString)
-                        .submit()
-                        .get()
-                val origin = Mat()
-                Utils.bitmapToMat(bitmap, origin)
-                pool.put(bitmap)
 
-                withContext(Dispatchers.Main) {
-                    viewModel.origin = origin
-                    viewModel.previousResult = origin
-                    draft.history.let {
-                        viewModel.history = it
 
-                        if (it.isEmpty()) {
-                            draw(origin)
-                        } else {
-                            fallback(it.lastIndex)
-                        }
+        setHasOptionsMenu(true)
+
+        return binding.root
+    }
+
+    private fun initFragment(draft: Draft) {
+        val fragment: Fragment = this
+        // decode image to mat
+        GlobalScope.launch {
+            val bitmap = GlideApp.with(fragment)
+                    .asBitmap()
+                    .load(draft.image)
+                    .submit()
+                    .get()
+            Log.d("loadImage", draft.image)
+            val origin = Mat()
+            Utils.bitmapToMat(bitmap, origin)
+            pool.put(bitmap)
+
+            // switch to main thread
+            withContext(Dispatchers.Main) {
+                viewModel.origin = origin
+                viewModel.previousResult = origin
+
+                restoreHistory(newDraft = draft).let { history ->
+                    Log.d(TAG, "initFragment: old:${viewModel.history.size},new:${history.size}")
+                    viewModel.history = history
+                    if (history.isEmpty()) {
+                        apply(FilterType.Identity)
+                    } else {
+                        fallback(history.lastIndex)
                     }
                 }
             }
         }
-
 
         //when filter applied change, build the new subscription
         viewModel.mediator.observe({ lifecycle }) { filterHolder ->
@@ -94,10 +101,14 @@ class AdjustPageFragment : Fragment() {
                 draw(process(filter))
             }
         }
+    }
 
-        setHasOptionsMenu(true)
+    private fun restoreHistory(newDraft: Draft): MutableList<IFilter> {
+        val oldDraft = viewModel.draft.value ?: return newDraft.history
 
-        return binding.root
+        if (oldDraft.id != newDraft.id) return newDraft.history
+
+        return oldDraft.history
     }
 
     private fun process(filter: IFilter) = filter.apply(viewModel.previousResult)
@@ -120,12 +131,14 @@ class AdjustPageFragment : Fragment() {
         return when (item.itemId) {
             R.id.done -> {
                 Log.d(TAG, "onOptionsItemSelected: save")
-                save(viewModel.draft.value!!)
+                viewModel.save()
+                goHome()
                 true
             }
             R.id.drop -> {
                 Log.d(TAG, "onOptionsItemSelected: drop")
-                drop(viewModel.draft.value!!)
+                viewModel.drop()
+                goHome()
                 true
             }
             R.id.filter_menu -> {
@@ -137,7 +150,6 @@ class AdjustPageFragment : Fragment() {
                 true
             }
         }
-
     }
 
     /**
@@ -150,14 +162,14 @@ class AdjustPageFragment : Fragment() {
 
     fun apply(type: FilterType) {
         val filter = newInstanceFromType(type)
-        viewModel.previousResult = viewModel.currentResutl
+        viewModel.currentResult?.let { viewModel.previousResult = it }
         viewModel.history.add(filter)
         apply(filter)
     }
 
 
     fun apply(filter: IFilter) {
-        val (layout, mediator) = createView(requireContext(), filter)
+        val (layout, mediator) = createControlPanel(requireContext(), filter)
 
         control_panel.removeAllViews()
         control_panel.addView(layout)
@@ -168,7 +180,7 @@ class AdjustPageFragment : Fragment() {
 
 
     private fun draw(mat: Mat) {
-        viewModel.currentResutl = mat
+        viewModel.currentResult = mat
 
         if (previous != null) {
             //clean up
@@ -182,21 +194,7 @@ class AdjustPageFragment : Fragment() {
 
     }
 
-    private fun save(draft: Draft) {
-        GlobalScope.launch {
-            viewModel.save(draft)
-            gotHome()
-        }
-    }
-
-    private fun drop(draft: Draft) {
-        GlobalScope.launch {
-            viewModel.drop(draft)
-            gotHome()
-        }
-    }
-
-    private fun gotHome() {
+    private fun goHome() {
         findNavController().navigate(HomeFragmentDirections.actionGlobalHomeFragment())
     }
 

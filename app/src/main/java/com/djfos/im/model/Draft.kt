@@ -4,9 +4,15 @@ import androidx.lifecycle.LiveData
 import androidx.room.*
 import com.djfos.im.filter.IFilter
 import kotlinx.coroutines.runBlocking
+import java.util.*
 
 @Entity
-data class Draft(val sourceImageUriString: String) {
+data class Draft(
+        @ColumnInfo(name = "sourceImageUriString")
+        val image: String,
+        val thumb: String,
+        var latestModifyTime: Long
+) {
     @PrimaryKey(autoGenerate = true)
     var id: Long = 0
     var history: MutableList<IFilter> = mutableListOf()
@@ -18,8 +24,9 @@ interface DraftDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insert(draft: Draft): Long
 
-    @Delete
-    fun delete(draft: Draft)
+    //todo require test
+    @Query("delete from draft where id in (:ids)")
+    fun delete(ids: List<Long>)
 
     @Query("select * from draft where id =:id")
     fun getById(id: Long): LiveData<Draft>
@@ -47,7 +54,9 @@ class DraftRepository private constructor(private val dao: DraftDao) {
 
     fun saveDraft(draft: Draft) = dao.insert(draft)
 
-    fun dropDraft(draft: Draft) = dao.delete(draft)
+    fun dropDraft(draft: Draft) = dao.delete(listOf(draft.id))
+    fun dropDrafts(ids: List<Long>) = dao.delete(ids)
+
 
     companion object {
         @Volatile

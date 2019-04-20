@@ -11,7 +11,7 @@ import java.lang.reflect.Field
 /**
  * build one way binding ,ui -> data
  */
-fun createView(
+fun createControlPanel(
         context: Context,
         filter: IFilter
 ): Pair<ViewGroup, MutableLiveData<IFilter>> {
@@ -21,7 +21,7 @@ fun createView(
     val mediator = MutableLiveData<IFilter>()
 
     for (field in filter::class.java.declaredFields) {
-        field.isAccessible = true //make no private first!!
+        field.isAccessible = true //make no private shouldStart!!
 
         field.getAnnotation(FilterControl::class.java)?.let {
             val view = when (it.controlType) {

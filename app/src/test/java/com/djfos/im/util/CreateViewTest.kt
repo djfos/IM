@@ -28,26 +28,26 @@ class CreateViewTest {
 
     @Test
     fun layout_should_have_only_one_child_view() {
-        val (layout, liveData) = createView(context, filter)
+        val (layout, liveData) = createControlPanel(context, filter)
         assertThat(layout.childCount, equalTo(1))
     }
 
     @Test
     fun `the child view should be a seek bar`() {
-        val (layout, liveData) = createView(context, filter)
+        val (layout, liveData) = createControlPanel(context, filter)
         assertThat(layout[0] is SeekBar, equalTo(true))
     }
 
     @Test
     fun `seek bar should have the same progress as filter`() {
-        val (layout, liveData) = createView(context, filter)
+        val (layout, liveData) = createControlPanel(context, filter)
         val seekBar = layout[0] as SeekBar
         assertThat(seekBar.progress, equalTo(30))
     }
 
     @Test
     fun `when seek bar progress change,callback should be called`() {
-        val (layout, liveData) = createView(context, filter)
+        val (layout, liveData) = createControlPanel(context, filter)
         val seekBar = layout[0] as SeekBar
 
         var number = 0
@@ -59,7 +59,7 @@ class CreateViewTest {
 
     @Test
     fun `when seek bar progress change,field should be synchronized`() {
-        val (layout, liveData) = createView(context, filter)
+        val (layout, liveData) = createControlPanel(context, filter)
         val seekBar = layout[0] as SeekBar
 
         var number = 0

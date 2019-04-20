@@ -24,10 +24,18 @@ val savePath: File
         return bar
     }
 
+val thumbPath: File
+    get() {
+        val publicPath = Environment.getExternalStorageDirectory()
+        val foo = File(publicPath, "thumb")
+        checkPath(foo)
+        return foo
+    }
+
 private fun checkPath(path: File) {
     if (!path.exists()) {
         if (!path.mkdirs())
-            throw PermissionException()
+            throw Exception("permission required to write storage")
     }
 }
 
@@ -35,6 +43,3 @@ fun createImageFile(path: File): File {
     val timeStamp = SimpleDateFormat("yyyyMMdd", Locale.CHINESE).format(Date())
     return File.createTempFile(timeStamp, ".jpg", path)
 }
-
-
-class PermissionException : Exception()

@@ -17,4 +17,7 @@
     <dimen name="navigation_drawer_image_width">100dp</dimen>
     <dimen name="toolbar_height">56dp</dimen>
     <dimen name="elevation">4dp</dimen>
+    <dimen name="home_list_thumb_width">64dp</dimen>
+    <dimen name="home_list_thumb_height">64dp</dimen>
+    <dimen name="padding">8dp</dimen>
 </resources>

@@ -41,6 +41,12 @@ android {
     testOptions {
         unitTests.includeAndroidResources = true
     }
+
+    sourceSets {
+        androidTest.assets.srcDirs += files("$projectDir/schemas".toString())
+        test.assets.srcDirs += files("$projectDir/schemas".toString())
+    }
+
 }
 
 dependencies {
@@ -57,6 +63,7 @@ dependencies {
     implementation "androidx.room:room-ktx:$room_version"
     kapt "androidx.room:room-compiler:$room_version"
     testImplementation "androidx.room:room-testing:$room_version"
+    androidTestImplementation "androidx.room:room-testing:$room_version"
     // navigation
     implementation "androidx.navigation:navigation-fragment-ktx:2.0.0"
     implementation "androidx.navigation:navigation-ui-ktx:2.0.0"
@@ -72,7 +79,7 @@ dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.1.1"
     //others
     implementation 'io.reactivex.rxjava2:rxjava:2.2.8'
-//    implementation 'io.github.classgraph:classgraph:4.8.24'
+    implementation 'com.h6ah4i.android.widget.advrecyclerview:advrecyclerview:1.0.0'
     // openCV
     implementation project(':opencv-4.0.1')
     // test
@@ -87,6 +94,7 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.0'
     androidTestImplementation 'androidx.test.ext:truth:1.1.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0-alpha03'
+    implementation 'com.android.support:recyclerview-selection:28.0.0'
 }
 
 repositories {

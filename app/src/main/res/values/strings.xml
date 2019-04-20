@@ -7,4 +7,6 @@
     <string name="camera">camera</string>
     <string name="gallery">gallery</string>
     <string name="filter_menu">filter</string>
+    <string name="content_description">TODO</string>
+    <string name="action_delete">delete</string>
 </resources>
