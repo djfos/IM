@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
 import android.view.*
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
@@ -15,7 +16,6 @@ import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.selection.SelectionPredicates
 import androidx.recyclerview.selection.SelectionTracker
-import androidx.recyclerview.selection.StableIdKeyProvider
 import androidx.recyclerview.selection.StorageStrategy
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.djfos.im.R
@@ -44,6 +44,11 @@ class HomeFragment : Fragment() {
         viewModel = ViewModelProviders
                 .of(this, provideHomePageViewModelFactory(requireContext()))
                 .get(HomePageViewModel::class.java)
+        // set menu
+        (requireActivity() as AppCompatActivity).apply {
+            setSupportActionBar(binding.toolbar)
+            supportActionBar!!.setDisplayShowTitleEnabled(false)
+        }
 
         val draftAdapter = DraftAdapter()
         val linearLayoutManager = LinearLayoutManager(requireContext())

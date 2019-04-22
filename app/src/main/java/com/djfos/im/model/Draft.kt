@@ -2,6 +2,7 @@ package com.djfos.im.model
 
 import androidx.lifecycle.LiveData
 import androidx.room.*
+import com.djfos.im.filter.FilterIdentity
 import com.djfos.im.filter.IFilter
 import kotlinx.coroutines.runBlocking
 import java.util.*
@@ -15,7 +16,7 @@ data class Draft(
 ) {
     @PrimaryKey(autoGenerate = true)
     var id: Long = 0
-    var history: MutableList<IFilter> = mutableListOf()
+    var history: MutableList<IFilter> = mutableListOf(FilterIdentity())
 }
 
 
@@ -24,7 +25,7 @@ interface DraftDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insert(draft: Draft): Long
 
-    //todo require test
+
     @Query("delete from draft where id in (:ids)")
     fun delete(ids: List<Long>)
 

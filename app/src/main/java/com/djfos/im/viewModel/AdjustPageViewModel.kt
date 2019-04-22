@@ -1,71 +1,75 @@
 package com.djfos.im.viewModel
 
-import androidx.lifecycle.*
-import com.djfos.im.filter.FilterIdentity
+import android.util.Log
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import com.djfos.im.filter.IFilter
 import com.djfos.im.model.Draft
 import com.djfos.im.model.DraftRepository
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.opencv.core.Mat
-import java.util.logging.Filter
+
+private const val TAG = "AdjustPageViewModel"
 
 class AdjustPageViewModel(
         private val draftRepository: DraftRepository,
-        val draft: LiveData<Draft>
+        private val draft: Draft,
+        private val origin: Mat
 ) : ViewModel() {
 
-    lateinit var origin: Mat
-    lateinit var previousResult: Mat
+    var previousResult: Mat = origin
     var currentResult: Mat? = null
-    var history: MutableList<IFilter> = mutableListOf(FilterIdentity())
+
+    var history: MutableList<IFilter> = draft.history
+
 
     val mediator = MutableLiveData<MutableLiveData<IFilter>>()
 
     fun save() {
         GlobalScope.launch {
-            draft.value?.let {
-                it.latestModifyTime = System.currentTimeMillis()
-                draftRepository.saveDraft(it)
-            }
+            draft.latestModifyTime = System.currentTimeMillis()
+            draftRepository.saveDraft(draft)
         }
     }
 
     fun drop() {
         GlobalScope.launch {
-            draft.value?.let { draftRepository.dropDraft(it) }
+            draftRepository.dropDraft(draft)
         }
     }
 
     /**
-     * fallback somewhere in the history
+     * fallback somewhere in the history,return the proper filter
      */
     fun fallback(index: Int): IFilter {
-        check(history.isNotEmpty()) { "history,isEmpty" }
+        Log.d(TAG, "fallback() called with: index = [$index]")
         require(index >= 0 && index < history.size) { "index $index out of bound, array size ${history.size}" }
 
-        if (index != 0) {
-            var mat = origin
-            var i = 0
-            while (i != index - 1) {
-                mat = history[i].apply(mat)
-                i++
-            }
+        var i = 0
+        var mat = origin
 
-            previousResult = mat
+        while (i < index) {
+            mat = history[i].apply(mat)
+            i++
         }
-        return history[index]
+
+        previousResult = mat
+
+        return history[i]
     }
 }
 
 
 class AViewModelFactory(
         private val draftRepository: DraftRepository,
-        private val draft: LiveData<Draft>
+        private val draft: Draft,
+        private val origin: Mat
 ) : ViewModelProvider.Factory {
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return AdjustPageViewModel(draftRepository, draft) as T
+        return AdjustPageViewModel(draftRepository, draft, origin) as T
     }
 }

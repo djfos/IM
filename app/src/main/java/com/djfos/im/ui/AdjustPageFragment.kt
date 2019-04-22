@@ -5,151 +5,130 @@ import android.graphics.Bitmap
 import android.os.Bundle
 import android.util.Log
 import android.view.*
+import android.widget.FrameLayout
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.ViewSwitcher
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.GravityCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.load.engine.bitmap_recycle.BitmapPool
 import com.djfos.im.R
+import com.djfos.im.adapter.HistoryAdapter
 import com.djfos.im.databinding.FragmentAdjustPageBinding
+import com.djfos.im.databinding.HistoryPanelBinding
+import com.djfos.im.databinding.ListItemHistoryBinding
 import com.djfos.im.filter.FilterType
 import com.djfos.im.filter.IFilter
 import com.djfos.im.filter.newInstanceFromType
 import com.djfos.im.filter.typeMap
-import com.djfos.im.model.Draft
 import com.djfos.im.util.GlideApp
 import com.djfos.im.util.Injector
 import com.djfos.im.util.createControlPanel
 import com.djfos.im.viewModel.AdjustPageViewModel
+import com.google.android.material.navigation.NavigationView
 import kotlinx.android.synthetic.main.fragment_adjust_page.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.opencv.android.Utils
 import org.opencv.core.Mat
 
 
 class AdjustPageFragment : Fragment() {
-
     private lateinit var viewModel: AdjustPageViewModel
     private lateinit var pool: BitmapPool
     private lateinit var viewSwitcher: ViewSwitcher
     private var previous: Bitmap? = null
+    private lateinit var controlPanel: FrameLayout
+    private lateinit var historyAdapter: HistoryAdapter
 
-    override fun onCreateView(
-            inflater: LayoutInflater,
-            container: ViewGroup?,
-            savedInstanceState: Bundle?
-    ): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val binding = FragmentAdjustPageBinding.inflate(inflater, container, false)
 
-        viewSwitcher = binding.resultView
-        pool = GlideApp.get(requireContext()).bitmapPool
-        val args = AdjustPageFragmentArgs.fromBundle(arguments!!)
-        val factory = Injector.provideAViewModelFactory(requireContext(), args.id)
-
+        val args = AdjustPageFragmentArgs.fromBundle(requireArguments())
+        val factory = Injector.provideAViewModelFactory(requireActivity().application, args.id)
         viewModel = ViewModelProviders.of(this, factory).get(AdjustPageViewModel::class.java)
 
-        viewModel.draft.observe({ lifecycle }) { draft ->
-            draft?.let { initFragment(draft) }
+        // set class properties
+        viewSwitcher = binding.resultView
+        controlPanel = binding.controlPanel
+        pool = GlideApp.get(requireContext()).bitmapPool
+
+        // set toolbar
+        (requireActivity() as AppCompatActivity).apply {
+            setSupportActionBar(binding.toolbar)
+            supportActionBar!!.setDisplayShowTitleEnabled(false)
         }
 
+        // set history button
+        binding.buttonHistory.setOnClickListener { binding.drawerLayout.openDrawer(GravityCompat.START) }
 
 
+        // set history panel
+        historyAdapter = HistoryAdapter(callback = { index ->
+            fallback(index)
+        })
+        binding.historyPanel.historyList.let {
+            it.layoutManager = LinearLayoutManager(requireContext())
+            it.adapter = historyAdapter
+        }
+        syncHistory()
+
+
+        viewModel.mediator.observe({ lifecycle }) { filterHolder ->
+            // subscribe to  change of  filter control
+            filterHolder.observe({ lifecycle }) { filter ->
+                draw(filter.apply(viewModel.previousResult))
+            }
+        }
+
+        fallback(viewModel.history.lastIndex)
         setHasOptionsMenu(true)
 
         return binding.root
     }
 
-    private fun initFragment(draft: Draft) {
-        val fragment: Fragment = this
-        // decode image to mat
-        GlobalScope.launch {
-            val bitmap = GlideApp.with(fragment)
-                    .asBitmap()
-                    .load(draft.image)
-                    .submit()
-                    .get()
-            Log.d("loadImage", draft.image)
-            val origin = Mat()
-            Utils.bitmapToMat(bitmap, origin)
-            pool.put(bitmap)
-
-            // switch to main thread
-            withContext(Dispatchers.Main) {
-                viewModel.origin = origin
-                viewModel.previousResult = origin
-
-                restoreHistory(newDraft = draft).let { history ->
-                    Log.d(TAG, "initFragment: old:${viewModel.history.size},new:${history.size}")
-                    viewModel.history = history
-                    if (history.isEmpty()) {
-                        apply(FilterType.Identity)
-                    } else {
-                        fallback(history.lastIndex)
-                    }
-                }
-            }
-        }
-
-        //when filter applied change, build the new subscription
-        viewModel.mediator.observe({ lifecycle }) { filterHolder ->
-            // subscribe to  change of  filter control
-            filterHolder.observe({ lifecycle }) { filter ->
-                draw(process(filter))
-            }
-        }
+    private fun syncHistory() {
+        historyAdapter.setData(viewModel.history)
     }
 
-    private fun restoreHistory(newDraft: Draft): MutableList<IFilter> {
-        val oldDraft = viewModel.draft.value ?: return newDraft.history
-
-        if (oldDraft.id != newDraft.id) return newDraft.history
-
-        return oldDraft.history
-    }
-
-    private fun process(filter: IFilter) = filter.apply(viewModel.previousResult)
-
-    override fun onCreateOptionsMenu(
-            menu: Menu,
-            inflater: MenuInflater
-    ) {
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.adjust_page_menu, menu)
         val a = menu.findItem(R.id.filter_menu)
-        Log.d(TAG, "onCreateOptionsMenu: ${a.hasSubMenu()}")
         typeMap.keys.forEach {
-            a.subMenu.add(Menu.NONE, it.ordinal, Menu.NONE, it.toString())
+            a.subMenu.add(R.id.group_filter_menu, it.ordinal, Menu.NONE, it.toString())
         }
     }
 
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        Log.d(TAG, "onOptionsItemSelected id:${item.itemId} title:${item.title}")
-        return when (item.itemId) {
-            R.id.done -> {
-                Log.d(TAG, "onOptionsItemSelected: save")
-                viewModel.save()
-                goHome()
-                true
+        Log.d(TAG, "onOptionsItemSelected ${item.groupId}  ${item.itemId}")
+
+        return when (item.groupId) {
+            R.id.group_adjust_page_action -> when (item.itemId) {
+                R.id.done -> {
+                    Log.d(TAG, "onOptionsItemSelected: save")
+                    viewModel.save()
+                    goHome()
+                    true
+                }
+                R.id.drop -> {
+                    Log.d(TAG, "onOptionsItemSelected: drop")
+                    viewModel.drop()
+                    goHome()
+                    true
+                }
+                else -> super.onOptionsItemSelected(item)
             }
-            R.id.drop -> {
-                Log.d(TAG, "onOptionsItemSelected: drop")
-                viewModel.drop()
-                goHome()
-                true
-            }
-            R.id.filter_menu -> {
-                true
-            }
-            else -> {
+            R.id.group_filter_menu -> {
                 val type = FilterType.valueOf(item.title.toString())
                 apply(type)
                 true
             }
+            else -> super.onOptionsItemSelected(item)
         }
+
     }
 
     /**
@@ -171,14 +150,16 @@ class AdjustPageFragment : Fragment() {
     fun apply(filter: IFilter) {
         val (layout, mediator) = createControlPanel(requireContext(), filter)
 
-        control_panel.removeAllViews()
-        control_panel.addView(layout)
+        controlPanel.removeAllViews()
+        controlPanel.addView(layout)
 
         viewModel.mediator.value = mediator
         mediator.value = filter
+
+        syncHistory()
     }
 
-
+    // todo use extension function
     private fun draw(mat: Mat) {
         viewModel.currentResult = mat
 

@@ -2,24 +2,27 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <item
-    android:id="@+id/drop"
-    android:icon="@drawable/ic_delete_black_24dp"
-    android:title="@string/drop"
-    app:showAsAction="ifRoom" />
-    <item
-        android:id="@+id/done"
-        android:icon="@drawable/ic_done_black_24dp"
-        android:title="@string/done"
-        app:showAsAction="ifRoom" />
+    <group android:id="@+id/group_adjust_page_action">
+        <item
+            android:id="@+id/drop"
+            android:icon="@drawable/ic_delete_black_24dp"
+            android:title="@string/drop"
+            app:showAsAction="ifRoom" />
+        <item
+            android:id="@+id/done"
+            android:icon="@drawable/ic_done_black_24dp"
+            android:title="@string/done"
+            app:showAsAction="ifRoom" />
 
-    <item
-        android:id="@+id/filter_menu"
-        android:icon="@drawable/ic_tune_black_24dp"
-        android:title="@string/filter_menu"
-        app:showAsAction="ifRoom">
-        <menu></menu>
-    </item>
+        <item
+            android:id="@+id/filter_menu"
+            android:icon="@drawable/ic_tune_black_24dp"
+            android:title="@string/filter_menu"
+            app:showAsAction="ifRoom">
+            <menu>
 
+            </menu>
+        </item>
 
+    </group>
 </menu>

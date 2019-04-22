@@ -3,9 +3,7 @@ package com.djfos.im.ui
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
-import androidx.room.Room
-import com.djfos.im.databinding.ActivityMainBinding
-import com.djfos.im.model.AppDataBase
+import com.djfos.im.R
 import org.opencv.android.OpenCVLoader
 
 
@@ -13,10 +11,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        val toolbar = binding.toolbar
-        setSupportActionBar(toolbar)
+        setContentView(R.layout.activity_main)
+        supportActionBar
     }
 
 
