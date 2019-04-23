@@ -10,8 +10,8 @@
             type="android.view.View.OnClickListener" />
 
         <variable
-            name="filter"
-            type="com.djfos.im.filter.AbstractFilter" />
+            name="name"
+            type="String" />
 
         <variable
             name="valid"
@@ -21,8 +21,9 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@{valid ? @color/backgroundStrong : @color/background}"
+        android:layout_height="@dimen/history_list_item_height"
+        android:layout_marginTop="@dimen/margin_small"
+        android:background="@{valid ? @color/backgroundBase : @color/background}"
         android:onClick="@{clickListener}"
         android:padding="@dimen/padding">
 
@@ -30,10 +31,11 @@
             android:id="@+id/info"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:ems="10"
-            android:text="@{filter.type.toString()}"
+            android:text="@{name}"
+            android:textSize="24sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>

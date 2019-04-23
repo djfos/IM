@@ -9,5 +9,7 @@
     <string name="filter_menu">filter</string>
     <string name="content_description">TODO</string>
     <string name="action_delete">delete</string>
-    <string name="history">history</string>
+    <string name="history">History</string>
+    <string name="text">text</string>
+    <string name="action_new" >new</string>
 </resources>

@@ -26,11 +26,13 @@ object Injector {
 
         val repo = getDraftRepository(application)
         val draft: Draft = runBlocking(Dispatchers.IO) { repo.getDraftSimple(id) }
-
+        val width = application.resources.displayMetrics.widthPixels
+        val height = application.resources.displayMetrics.heightPixels
         val origin: Mat = runBlocking(Dispatchers.IO) {
             GlideApp.with(application)
                     .asBitmap()
-                    .load(draft!!.image)
+                    .load(draft.image)
+                    .override(width, height)
                     .submit()
                     .get().let { bitmap ->
                         val mat = Mat()

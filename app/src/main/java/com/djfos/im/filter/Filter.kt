@@ -1,5 +1,11 @@
 package com.djfos.im.filter
 
+import android.view.LayoutInflater
+import android.view.ViewGroup
+import androidx.databinding.Observable
+import androidx.databinding.ObservableInt
+import androidx.lifecycle.MutableLiveData
+import com.djfos.im.databinding.ControlSeekbarBinding
 import org.opencv.core.Mat
 import kotlin.reflect.KClass
 
@@ -30,12 +36,19 @@ data class FilterInfo(
         val cls: KClass<out AbstractFilter>,
         val name: String,
         val createInstance: () -> AbstractFilter,
+        val createControlPanel: (controlPanel: ViewGroup, filter: AbstractFilter) -> Unit = { _, _ -> },
         val showInMenu: Boolean = true,
         val valid: (input: Mat) -> Boolean = { true }
 )
 
 
 val filterInfos: Map<FilterType, FilterInfo> = mapOf(
+        FilterType.Identity to FilterInfo(
+                cls = FilterIdentity::class,
+                createInstance = { FilterIdentity() },
+                name = "Identity",
+                showInMenu = true
+        ),
         FilterType.Gray to FilterInfo(
                 cls = FilterGrayScale::class,
                 createInstance = { FilterGrayScale() },
@@ -46,14 +59,52 @@ val filterInfos: Map<FilterType, FilterInfo> = mapOf(
                 cls = FilterThreshold::class,
                 createInstance = { FilterThreshold() },
                 name = "Threshold"
-        ),
-        FilterType.Identity to FilterInfo(
-                cls = FilterIdentity::class,
-                createInstance = { FilterIdentity() },
-                name = "Identity",
-                showInMenu = true
+
         )
 )
+
+
+fun buildFilterControl(filter: AbstractFilter): (controlPanel: ViewGroup) -> MutableLiveData<AbstractFilter> {
+    return when (filter.type) {
+        FilterType.Thresh -> {
+            { controlPanel ->
+                val mediator = MutableLiveData<AbstractFilter>()
+                if (filter is FilterThreshold) {
+                    val binding = ControlSeekbarBinding.inflate(
+                            LayoutInflater.from(controlPanel.context),
+                            controlPanel,
+                            true
+                    )
+
+                    val observableInt = ObservableInt()
+
+                    binding.title = "threshold"
+                    binding.max = 256
+                    binding.value = observableInt
+
+                    observableInt.set(filter.threshold)
+
+                    observableInt.addOnPropertyChangedCallback(object : Observable.OnPropertyChangedCallback() {
+                        override fun onPropertyChanged(sender: Observable?, propertyId: Int) {
+                            filter.threshold = observableInt.get()
+                            mediator.value = filter
+                        }
+                    })
+                }
+
+                mediator
+            }
+        }
+        else -> {
+            { controlPanel ->
+                controlPanel.removeAllViews() // no need for control
+                MutableLiveData()
+            }
+        }
+    }
+}
+
+
 
 
 

@@ -37,7 +37,7 @@ class HomeFragment : Fragment() {
     private var image: File? = null
     private var actionMode: ActionMode? = null
     private lateinit var viewModel: HomePageViewModel
-    private lateinit var draftAdapter :DraftAdapter
+    private lateinit var draftAdapter: DraftAdapter
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val binding = FragmentHomeBinding.inflate(inflater, container, false)
@@ -52,13 +52,12 @@ class HomeFragment : Fragment() {
         }
 
         draftAdapter = DraftAdapter()
-        val linearLayoutManager = LinearLayoutManager(requireContext())
 
         viewModel.allDrafts.observe({ lifecycle }) { drafts -> draftAdapter.setDraft(drafts) }
 
         binding.draftList.apply {
             setHasFixedSize(true)
-            layoutManager = linearLayoutManager
+            layoutManager = LinearLayoutManager(requireContext())
             adapter = draftAdapter
 
             // add multi select support
@@ -118,14 +117,17 @@ class HomeFragment : Fragment() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.action_take_photo -> {
-                takePhoto()
-                true
-            }
-            R.id.action_pick_from_gallery -> {
-                selectPhoto()
-                true
+        return when (item.groupId) {
+            R.id.group_new_draft -> when (item.itemId) {
+                R.id.action_take_photo -> {
+                    takePhoto()
+                    true
+                }
+                R.id.action_pick_from_gallery -> {
+                    selectPhoto()
+                    true
+                }
+                else -> super.onOptionsItemSelected(item)
             }
             else -> super.onOptionsItemSelected(item)
         }
@@ -175,7 +177,7 @@ class HomeFragment : Fragment() {
         }
     }
 
-
+    //todo bug image not display
     private fun selectPhoto() {
         requestPermission(requireActivity())
         if (!hasPermission(requireActivity()))
@@ -200,21 +202,16 @@ class HomeFragment : Fragment() {
     }
 
     private val actionModeCallback = object : ActionMode.Callback {
-        // Called when the action mode is created; startActionMode() was called
+
         override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
-            // Inflate a menu resource providing context menu items
-            val inflater: MenuInflater = mode.menuInflater
-            inflater.inflate(R.menu.home_page_action_mode, menu)
+            mode.menuInflater.inflate(R.menu.home_page_action_mode, menu)
             return true
         }
 
-        // Called each time the action mode is shown. Always called after onCreateActionMode, but
-        // may be called multiple times if the mode is invalidated.
         override fun onPrepareActionMode(mode: ActionMode, menu: Menu): Boolean {
             return false // Return false if nothing is done
         }
 
-        // Called when the user selects a contextual menu item
         override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean {
             return when (item.itemId) {
                 R.id.delete -> {
@@ -226,7 +223,6 @@ class HomeFragment : Fragment() {
             }
         }
 
-        // Called when the user exits the action mode
         override fun onDestroyActionMode(mode: ActionMode) {
 
         }

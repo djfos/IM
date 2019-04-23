@@ -1,10 +1,10 @@
 package com.djfos.im.model
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.djfos.im.filter.AbstractFilter
 import com.djfos.im.filter.FilterGrayScale
 import com.djfos.im.filter.FilterIdentity
 import com.djfos.im.filter.FilterThreshold
-import com.djfos.im.filter.AbstractFilter
 import com.google.gson.Gson
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert

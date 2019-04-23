@@ -30,9 +30,6 @@ class DraftAdapter : RecyclerView.Adapter<DraftAdapter.ViewHolder>() {
             mdraft = item
             binding.apply {
                 draft = mdraft
-//                clickListener = View.OnClickListener {
-//                    Toast.makeText(binding.root.context, "${mdraft.id}", Toast.LENGTH_SHORT).show()
-//                }
                 clickListener = listener
                 select = tracker.isSelected(mdraft.id)
                 Log.d("DraftAdapter", "bind: position:$position select:$select")

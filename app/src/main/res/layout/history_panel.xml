@@ -4,13 +4,14 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:background="@color/backgroundBase">
 
         <androidx.appcompat.widget.LinearLayoutCompat
             android:id="@+id/panel_title"
             android:layout_width="0dp"
             android:layout_height="@dimen/toolbar_height"
-            android:elevation="@dimen/elevation"
+            android:background="@color/background"
             android:gravity="center"
             app:layout_constraintBottom_toTopOf="@id/history_list"
             app:layout_constraintLeft_toLeftOf="parent"
@@ -21,7 +22,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:text="@string/history" />
+                android:text="@string/history"
+                android:textSize="32sp" />
         </androidx.appcompat.widget.LinearLayoutCompat>
 
         <androidx.recyclerview.widget.RecyclerView

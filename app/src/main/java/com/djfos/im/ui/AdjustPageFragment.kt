@@ -18,9 +18,7 @@ import com.bumptech.glide.load.engine.bitmap_recycle.BitmapPool
 import com.djfos.im.R
 import com.djfos.im.adapter.HistoryAdapter
 import com.djfos.im.databinding.FragmentAdjustPageBinding
-import com.djfos.im.filter.FilterType
-import com.djfos.im.filter.FilterTypeValues
-import com.djfos.im.filter.filterInfos
+import com.djfos.im.filter.*
 import com.djfos.im.util.GlideApp
 import com.djfos.im.util.Injector
 import com.djfos.im.util.createControlPanel
@@ -46,6 +44,7 @@ class AdjustPageFragment : Fragment() {
 
         // set class properties
         viewSwitcher = binding.resultView
+        Log.d(TAG, "onCreateView: viewSwitcher ${viewSwitcher.width} x ${viewSwitcher.height}")
         controlPanel = binding.controlPanel
         pool = GlideApp.get(requireContext()).bitmapPool
 
@@ -57,7 +56,6 @@ class AdjustPageFragment : Fragment() {
 
         // set history button
         binding.buttonHistory.setOnClickListener { binding.drawerLayout.openDrawer(GravityCompat.START) }
-
 
         // set history panel
         historyAdapter = HistoryAdapter(callback = { index ->
@@ -77,6 +75,7 @@ class AdjustPageFragment : Fragment() {
                 draw(filter.apply(viewModel.previousResult))
                 Log.d("observe", "filter: $filter")
                 viewModel.currentFilter = filter
+
             }
         }
 
@@ -113,7 +112,6 @@ class AdjustPageFragment : Fragment() {
             R.id.group_adjust_page_action -> when (item.itemId) {
                 R.id.done -> {
                     Log.d(TAG, "onOptionsItemSelected: save")
-//                    viewModel.save(pool)
                     goHome()
                     true
                 }
@@ -127,7 +125,9 @@ class AdjustPageFragment : Fragment() {
             }
             R.id.group_filter_menu -> {
                 val type = FilterTypeValues[item.itemId]
-                apply(type)
+                val filter = filterInfos.getValue(type).createInstance()
+                viewModel.apply(filter) // sync view model
+                apply(filter) // sync UI
                 true
             }
             else -> super.onOptionsItemSelected(item)
@@ -141,9 +141,8 @@ class AdjustPageFragment : Fragment() {
     }
 
 
-
     /**
-     * push history list to the adapter
+     * push history list to the  adapter
      */
     private fun syncHistory() {
         historyAdapter.setData(viewModel.history)
@@ -153,35 +152,25 @@ class AdjustPageFragment : Fragment() {
      * fallback somewhere in the history
      */
     private fun fallback(index: Int) {
-        val filter = viewModel.fallback(index)
-        val (layout, mediator) = createControlPanel(requireContext(), filter)
-        controlPanel.removeAllViews()
-        controlPanel.addView(layout)
-        viewModel.mediator.value = mediator
-        mediator.value = filter
- syncHistory()
-        requireActivity().invalidateOptionsMenu()
+        val filter = viewModel.fallback(index) //view model
+        apply(filter) // UI
         Log.d(TAG, "fallback: history ${viewModel.history}")
     }
 
     /**
-     * apply a new filter according to the given filter type.
+     * update the UI with the given filter
      */
-    private fun apply(type: FilterType) {
-        val filter = filterInfos.getValue(type).createInstance()
-        viewModel.apply(filter)
-        val (layout, mediator) = createControlPanel(requireContext(), filter)
-        controlPanel.removeAllViews()
-        controlPanel.addView(layout)
+    fun apply(filter: AbstractFilter) {
+        val mediator = buildFilterControl(filter)(controlPanel)
         viewModel.mediator.value = mediator
         mediator.value = filter
- syncHistory()
-        requireActivity().invalidateOptionsMenu()
+        requireActivity().invalidateOptionsMenu() // sync menu
+        syncHistory() // sync history panel
     }
 
 
     /**
-     * draw the given mat to result view
+     * draw the given mat to  the result view
      */
     private fun draw(mat: Mat) {
         Log.d("draw", "draw: $mat")
@@ -195,6 +184,7 @@ class AdjustPageFragment : Fragment() {
         val bitmap = pool.getDirty(mat.width(), mat.height(), Bitmap.Config.ARGB_8888)
         Utils.matToBitmap(mat, bitmap)
         val next = viewSwitcher.nextView as ImageView
+//        GlideApp.with(this as Fragment).load(bitmap).into(next)
         next.setImageBitmap(bitmap)
         viewSwitcher.showNext()
 

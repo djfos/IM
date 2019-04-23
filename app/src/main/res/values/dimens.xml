@@ -18,4 +18,5 @@
     <dimen name="home_list_thumb_width">64dp</dimen>
     <dimen name="home_list_thumb_height">64dp</dimen>
     <dimen name="padding">8dp</dimen>
+    <dimen name="history_list_item_height">64dp</dimen>
 </resources>

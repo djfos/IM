@@ -83,6 +83,9 @@ class AdjustPageViewModel(
         return history[i]
     }
 
+    /**
+     * remove filters behind current filter, add given filter to the end of history,
+     */
     fun apply(filter: AbstractFilter) {
         currentResult?.let { previousResult = it }
 

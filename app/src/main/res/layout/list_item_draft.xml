@@ -22,7 +22,8 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@{select ? @color/backgroundStrong : @color/background}"
+        android:layout_marginTop="@dimen/margin_small"
+        android:background="@{select ? @color/backgroundBase : @color/background}"
         android:onClick="@{clickListener}"
         android:padding="@dimen/padding">
 
@@ -32,7 +33,6 @@
             android:layout_height="@dimen/home_list_thumb_height"
             android:contentDescription="@string/content_description"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/info"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:uri="@{draft.thumb}" />

@@ -6,6 +6,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.djfos.im.databinding.ListItemHistoryBinding
 import com.djfos.im.filter.AbstractFilter
+import com.djfos.im.filter.filterInfos
 
 
 class HistoryAdapter(val callback: (index: Int) -> Unit) : RecyclerView.Adapter<HistoryAdapter.ViewHolder>() {
@@ -17,10 +18,10 @@ class HistoryAdapter(val callback: (index: Int) -> Unit) : RecyclerView.Adapter<
 
     inner class ViewHolder(private val binding: ListItemHistoryBinding) : RecyclerView.ViewHolder(binding.root) {
         private lateinit var mItem: AbstractFilter
-        fun bind(item: AbstractFilter, position: Int, listener: View.OnClickListener) {
+        fun bind(item: AbstractFilter, listener: View.OnClickListener) {
             mItem = item
             binding.apply {
-                filter = mItem
+                name = filterInfos.getValue(mItem.type).name
                 clickListener = listener
                 executePendingBindings()
             }
@@ -34,7 +35,7 @@ class HistoryAdapter(val callback: (index: Int) -> Unit) : RecyclerView.Adapter<
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = mDataList[position]
-        holder.bind(item, position, View.OnClickListener {
+        holder.bind(item, View.OnClickListener {
             callback(position)
         })
     }
