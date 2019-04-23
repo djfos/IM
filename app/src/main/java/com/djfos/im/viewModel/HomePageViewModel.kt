@@ -25,9 +25,9 @@ class HomePageViewModel(private val draftRepository: DraftRepository) : ViewMode
         return draftRepository.saveDraft(draft)
     }
 
-    fun deleteDrafts(ids: List<Long>) {
+    fun deleteDrafts(drafts: List<Draft>) {
         GlobalScope.launch {
-            draftRepository.dropDrafts(ids)
+            draftRepository.dropDrafts(drafts)
         }
     }
 }

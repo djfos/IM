@@ -5,19 +5,19 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.djfos.im.databinding.ListItemHistoryBinding
-import com.djfos.im.filter.IFilter
+import com.djfos.im.filter.AbstractFilter
 
-//todo filter validation
+
 class HistoryAdapter(val callback: (index: Int) -> Unit) : RecyclerView.Adapter<HistoryAdapter.ViewHolder>() {
-    private var mDataList = emptyList<IFilter>()
+    private var mDataList = emptyList<AbstractFilter>()
 
     init {
         setHasStableIds(true)
     }
 
     inner class ViewHolder(private val binding: ListItemHistoryBinding) : RecyclerView.ViewHolder(binding.root) {
-        private lateinit var mItem: IFilter
-        fun bind(item: IFilter, position: Int, listener: View.OnClickListener) {
+        private lateinit var mItem: AbstractFilter
+        fun bind(item: AbstractFilter, position: Int, listener: View.OnClickListener) {
             mItem = item
             binding.apply {
                 filter = mItem
@@ -39,7 +39,7 @@ class HistoryAdapter(val callback: (index: Int) -> Unit) : RecyclerView.Adapter<
         })
     }
 
-    internal fun setData(dataList: List<IFilter>) {
+    internal fun setData(dataList: List<AbstractFilter>) {
         this.mDataList = dataList
         notifyDataSetChanged()
     }

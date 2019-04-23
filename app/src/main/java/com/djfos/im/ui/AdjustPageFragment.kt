@@ -7,7 +7,6 @@ import android.util.Log
 import android.view.*
 import android.widget.FrameLayout
 import android.widget.ImageView
-import android.widget.LinearLayout
 import android.widget.ViewSwitcher
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
@@ -19,18 +18,13 @@ import com.bumptech.glide.load.engine.bitmap_recycle.BitmapPool
 import com.djfos.im.R
 import com.djfos.im.adapter.HistoryAdapter
 import com.djfos.im.databinding.FragmentAdjustPageBinding
-import com.djfos.im.databinding.HistoryPanelBinding
-import com.djfos.im.databinding.ListItemHistoryBinding
 import com.djfos.im.filter.FilterType
-import com.djfos.im.filter.IFilter
-import com.djfos.im.filter.newInstanceFromType
-import com.djfos.im.filter.typeMap
+import com.djfos.im.filter.FilterTypeValues
+import com.djfos.im.filter.filterInfos
 import com.djfos.im.util.GlideApp
 import com.djfos.im.util.Injector
 import com.djfos.im.util.createControlPanel
 import com.djfos.im.viewModel.AdjustPageViewModel
-import com.google.android.material.navigation.NavigationView
-import kotlinx.android.synthetic.main.fragment_adjust_page.*
 import org.opencv.android.Utils
 import org.opencv.core.Mat
 
@@ -68,6 +62,7 @@ class AdjustPageFragment : Fragment() {
         // set history panel
         historyAdapter = HistoryAdapter(callback = { index ->
             fallback(index)
+            binding.drawerLayout.closeDrawer(GravityCompat.START)
         })
         binding.historyPanel.historyList.let {
             it.layoutManager = LinearLayoutManager(requireContext())
@@ -80,6 +75,8 @@ class AdjustPageFragment : Fragment() {
             // subscribe to  change of  filter control
             filterHolder.observe({ lifecycle }) { filter ->
                 draw(filter.apply(viewModel.previousResult))
+                Log.d("observe", "filter: $filter")
+                viewModel.currentFilter = filter
             }
         }
 
@@ -89,15 +86,22 @@ class AdjustPageFragment : Fragment() {
         return binding.root
     }
 
-    private fun syncHistory() {
-        historyAdapter.setData(viewModel.history)
-    }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.adjust_page_menu, menu)
-        val a = menu.findItem(R.id.filter_menu)
-        typeMap.keys.forEach {
-            a.subMenu.add(R.id.group_filter_menu, it.ordinal, Menu.NONE, it.toString())
+        val filterMenu = menu.findItem(R.id.filter_menu)
+        filterInfos.entries.forEach { (type, info) ->
+            if (info.showInMenu) {
+                filterMenu.subMenu.add(
+                        R.id.group_filter_menu,
+                        type.ordinal,
+                        Menu.NONE,
+                        info.name
+                ).apply {
+                    isEnabled = viewModel.currentResult?.let { info.valid(it) } ?: true
+                    Log.d(TAG, "onCreateOptionsMenu: ${info.name} isEnabled $isEnabled")
+                }
+            }
         }
     }
 
@@ -109,7 +113,7 @@ class AdjustPageFragment : Fragment() {
             R.id.group_adjust_page_action -> when (item.itemId) {
                 R.id.done -> {
                     Log.d(TAG, "onOptionsItemSelected: save")
-                    viewModel.save()
+//                    viewModel.save(pool)
                     goHome()
                     true
                 }
@@ -122,7 +126,7 @@ class AdjustPageFragment : Fragment() {
                 else -> super.onOptionsItemSelected(item)
             }
             R.id.group_filter_menu -> {
-                val type = FilterType.valueOf(item.title.toString())
+                val type = FilterTypeValues[item.itemId]
                 apply(type)
                 true
             }
@@ -131,36 +135,57 @@ class AdjustPageFragment : Fragment() {
 
     }
 
+    override fun onPause() {
+        super.onPause()
+        viewModel.save(pool)
+    }
+
+
+
+    /**
+     * push history list to the adapter
+     */
+    private fun syncHistory() {
+        historyAdapter.setData(viewModel.history)
+    }
+
     /**
      * fallback somewhere in the history
      */
     private fun fallback(index: Int) {
         val filter = viewModel.fallback(index)
-        apply(filter)
-    }
-
-    fun apply(type: FilterType) {
-        val filter = newInstanceFromType(type)
-        viewModel.currentResult?.let { viewModel.previousResult = it }
-        viewModel.history.add(filter)
-        apply(filter)
-    }
-
-
-    fun apply(filter: IFilter) {
         val (layout, mediator) = createControlPanel(requireContext(), filter)
-
         controlPanel.removeAllViews()
         controlPanel.addView(layout)
-
         viewModel.mediator.value = mediator
         mediator.value = filter
-
-        syncHistory()
+ syncHistory()
+        requireActivity().invalidateOptionsMenu()
+        Log.d(TAG, "fallback: history ${viewModel.history}")
     }
 
-    // todo use extension function
+    /**
+     * apply a new filter according to the given filter type.
+     */
+    private fun apply(type: FilterType) {
+        val filter = filterInfos.getValue(type).createInstance()
+        viewModel.apply(filter)
+        val (layout, mediator) = createControlPanel(requireContext(), filter)
+        controlPanel.removeAllViews()
+        controlPanel.addView(layout)
+        viewModel.mediator.value = mediator
+        mediator.value = filter
+ syncHistory()
+        requireActivity().invalidateOptionsMenu()
+    }
+
+
+    /**
+     * draw the given mat to result view
+     */
     private fun draw(mat: Mat) {
+        Log.d("draw", "draw: $mat")
+        // todo use extension function
         viewModel.currentResult = mat
 
         if (previous != null) {
@@ -175,8 +200,11 @@ class AdjustPageFragment : Fragment() {
 
     }
 
+    /**
+     * navigate to home page
+     */
     private fun goHome() {
-        findNavController().navigate(HomeFragmentDirections.actionGlobalHomeFragment())
+        findNavController().popBackStack()
     }
 
     companion object {

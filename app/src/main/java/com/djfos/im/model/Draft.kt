@@ -3,9 +3,9 @@ package com.djfos.im.model
 import androidx.lifecycle.LiveData
 import androidx.room.*
 import com.djfos.im.filter.FilterIdentity
-import com.djfos.im.filter.IFilter
+import com.djfos.im.filter.AbstractFilter
 import kotlinx.coroutines.runBlocking
-import java.util.*
+import java.io.File
 
 @Entity
 data class Draft(
@@ -16,7 +16,7 @@ data class Draft(
 ) {
     @PrimaryKey(autoGenerate = true)
     var id: Long = 0
-    var history: MutableList<IFilter> = mutableListOf(FilterIdentity())
+    var history: MutableList<AbstractFilter> = mutableListOf(FilterIdentity())
 }
 
 
@@ -55,8 +55,19 @@ class DraftRepository private constructor(private val dao: DraftDao) {
 
     fun saveDraft(draft: Draft) = dao.insert(draft)
 
-    fun dropDraft(draft: Draft) = dao.delete(listOf(draft.id))
-    fun dropDrafts(ids: List<Long>) = dao.delete(ids)
+    fun dropDraft(draft: Draft) {
+        deleteThumb(draft)
+        dao.delete(listOf(draft.id))
+    }
+
+    fun dropDrafts(drafts: List<Draft>) {
+        drafts.forEach { deleteThumb(it) }
+        dao.delete(drafts.map { it.id })
+    }
+
+    private fun deleteThumb(draft: Draft) {
+        File(draft.thumb).apply { if (exists()) delete() }
+    }
 
 
     companion object {

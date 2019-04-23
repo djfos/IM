@@ -1,15 +1,21 @@
 package com.djfos.im.viewModel
 
+import android.graphics.Bitmap
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.djfos.im.filter.IFilter
+import com.bumptech.glide.load.engine.bitmap_recycle.BitmapPool
+import com.djfos.im.filter.AbstractFilter
 import com.djfos.im.model.Draft
 import com.djfos.im.model.DraftRepository
+import com.djfos.im.ui.AdjustPageFragment
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import org.opencv.android.Utils
 import org.opencv.core.Mat
+import java.io.FileOutputStream
+import java.io.FileWriter
 
 private const val TAG = "AdjustPageViewModel"
 
@@ -22,13 +28,27 @@ class AdjustPageViewModel(
     var previousResult: Mat = origin
     var currentResult: Mat? = null
 
-    var history: MutableList<IFilter> = draft.history
+    var history: MutableList<AbstractFilter>
+        get() = draft.history
+        set(value) {
+            draft.history = value
+        }
 
+    lateinit var currentFilter: AbstractFilter
 
-    val mediator = MutableLiveData<MutableLiveData<IFilter>>()
+    val mediator = MutableLiveData<MutableLiveData<AbstractFilter>>()
 
-    fun save() {
+    fun save(pool: BitmapPool) {
         GlobalScope.launch {
+            currentResult?.let { mat ->
+                val bitmap = pool.getDirty(mat.width(), mat.height(), Bitmap.Config.ARGB_8888)
+                Utils.matToBitmap(mat, bitmap)
+                FileOutputStream(draft.thumb).use { out ->
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 50, out)
+                    pool.put(bitmap)
+                }
+            }
+
             draft.latestModifyTime = System.currentTimeMillis()
             draftRepository.saveDraft(draft)
         }
@@ -43,7 +63,7 @@ class AdjustPageViewModel(
     /**
      * fallback somewhere in the history,return the proper filter
      */
-    fun fallback(index: Int): IFilter {
+    fun fallback(index: Int): AbstractFilter {
         Log.d(TAG, "fallback() called with: index = [$index]")
         require(index >= 0 && index < history.size) { "index $index out of bound, array size ${history.size}" }
 
@@ -57,7 +77,21 @@ class AdjustPageViewModel(
 
         previousResult = mat
 
+        Log.d(TAG, "fallback: origin $origin")
+        Log.d(TAG, "fallback: previousResult $previousResult")
+        Log.d(TAG, "fallback: currentResult $currentResult")
         return history[i]
+    }
+
+    fun apply(filter: AbstractFilter) {
+        currentResult?.let { previousResult = it }
+
+        val currentIndex = history.indexOf(currentFilter)
+
+        history = history.filterIndexed { index, _ -> index <= currentIndex }
+                .toMutableList()
+                .apply { add(filter) }
+
     }
 }
 

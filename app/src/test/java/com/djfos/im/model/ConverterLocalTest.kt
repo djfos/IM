@@ -4,7 +4,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.djfos.im.filter.FilterGrayScale
 import com.djfos.im.filter.FilterIdentity
 import com.djfos.im.filter.FilterThreshold
-import com.djfos.im.filter.IFilter
+import com.djfos.im.filter.AbstractFilter
 import com.google.gson.Gson
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert
@@ -17,10 +17,9 @@ class ConverterLocalTest {
     @Test
     fun `history can convert to Json then retrieve`() {
         val converter = Converter()
-        val history = mutableListOf<IFilter>()
+        val history = mutableListOf<AbstractFilter>()
         history.add(FilterIdentity())
         history.add(FilterGrayScale())
-
         val a = FilterThreshold()
         a.threshold = 20
         history.add(a)
@@ -29,4 +28,5 @@ class ConverterLocalTest {
         val actual = Gson().toJson(res)
         MatcherAssert.assertThat(actual, equalTo(json))
     }
+
 }

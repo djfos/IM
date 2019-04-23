@@ -37,6 +37,7 @@ class HomeFragment : Fragment() {
     private var image: File? = null
     private var actionMode: ActionMode? = null
     private lateinit var viewModel: HomePageViewModel
+    private lateinit var draftAdapter :DraftAdapter
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val binding = FragmentHomeBinding.inflate(inflater, container, false)
@@ -50,7 +51,7 @@ class HomeFragment : Fragment() {
             supportActionBar!!.setDisplayShowTitleEnabled(false)
         }
 
-        val draftAdapter = DraftAdapter()
+        draftAdapter = DraftAdapter()
         val linearLayoutManager = LinearLayoutManager(requireContext())
 
         viewModel.allDrafts.observe({ lifecycle }) { drafts -> draftAdapter.setDraft(drafts) }
@@ -217,7 +218,7 @@ class HomeFragment : Fragment() {
         override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean {
             return when (item.itemId) {
                 R.id.delete -> {
-                    viewModel.deleteDrafts(mTracker.selection.toList())
+                    viewModel.deleteDrafts(draftAdapter.getSelectedDraft())
                     viewModel.multiSelection.value = false
                     true
                 }

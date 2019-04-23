@@ -5,7 +5,7 @@ import org.opencv.core.Mat
 import org.opencv.imgproc.Imgproc
 
 
-class FilterGrayScale : IFilter {
+class FilterGrayScale : AbstractFilter() {
     override val type = FilterType.Gray
     override fun apply(input: Mat): Mat {
         val mat = Mat()
@@ -13,3 +13,5 @@ class FilterGrayScale : IFilter {
         return mat
     }
 }
+
+

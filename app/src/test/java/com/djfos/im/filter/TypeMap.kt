@@ -7,8 +7,10 @@ import org.junit.Test
 class TypeMap {
     @Test
     fun `get class type from filter type`() {
-        val actual = typeMap
-        assertThat((actual[FilterType.Gray]
-                ?: error("null")).java.name, equalTo(FilterGrayScale::class.java.name))
+        val actual = filterInfos
+        assertThat(
+                (actual[FilterType.Gray] ?: error("null")).cls.java.name,
+                equalTo(FilterGrayScale::class.java.name)
+        )
     }
 }

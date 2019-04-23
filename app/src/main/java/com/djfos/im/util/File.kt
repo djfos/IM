@@ -6,37 +6,21 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 
-val photoPath: File
-    get() {
-        val publicPath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
-        val path = File(publicPath, "im")
-        checkPath(path)
-        return path
-    }
+val rootPath = File(Environment.getExternalStorageDirectory(), "IM")
+
+val photoPath: File = checkPath(File(rootPath, "photo"))
+
+val savePath: File = checkPath(File(rootPath, "save"))
+
+val thumbPath: File = checkPath(File(rootPath, "thumb"))
 
 
-val savePath: File
-    get() {
-        val publicPath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
-        val foo = File(publicPath, "im")
-        val bar = File(foo, "save")
-        checkPath(bar)
-        return bar
-    }
-
-val thumbPath: File
-    get() {
-        val publicPath = Environment.getExternalStorageDirectory()
-        val foo = File(publicPath, "thumb")
-        checkPath(foo)
-        return foo
-    }
-
-private fun checkPath(path: File) {
+private fun checkPath(path: File): File {
     if (!path.exists()) {
         if (!path.mkdirs())
             throw Exception("permission required to write storage")
     }
+    return path
 }
 
 fun createImageFile(path: File): File {

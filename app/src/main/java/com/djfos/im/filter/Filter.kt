@@ -1,15 +1,15 @@
 package com.djfos.im.filter
 
-import android.util.Log
-import com.djfos.im.ui.AdjustPageFragment
 import org.opencv.core.Mat
-import java.lang.Exception
 import kotlin.reflect.KClass
-import kotlin.reflect.full.createInstance
 
-interface IFilter {
-    val type: FilterType
-    fun apply(input: Mat): Mat
+abstract class AbstractFilter {
+    abstract val type: FilterType
+    abstract fun apply(input: Mat): Mat
+
+    override fun toString(): String {
+        return type.toString()
+    }
 }
 
 enum class FilterType {
@@ -17,21 +17,44 @@ enum class FilterType {
 }
 
 
-@Target(AnnotationTarget.FIELD)
-annotation class FilterControl(val controlType: ControlType)
-
 enum class ControlType {
     Slider,
 }
 
-val typeMap: Map<FilterType, KClass<out IFilter>> = mapOf(
-        FilterType.Gray to FilterGrayScale::class,
-        FilterType.Thresh to FilterThreshold::class,
-        FilterType.Identity to FilterIdentity::class
+val FilterTypeValues by lazy { FilterType.values() }
+
+@Target(AnnotationTarget.FIELD)
+annotation class FilterControl(val controlType: ControlType)
+
+data class FilterInfo(
+        val cls: KClass<out AbstractFilter>,
+        val name: String,
+        val createInstance: () -> AbstractFilter,
+        val showInMenu: Boolean = true,
+        val valid: (input: Mat) -> Boolean = { true }
 )
 
-fun newInstanceFromType(type: FilterType): IFilter {
-    val cls = typeMap[type]
-    cls ?: throw Exception("apply: no class found that matches type $type")
-    return cls.createInstance()
-}
+
+val filterInfos: Map<FilterType, FilterInfo> = mapOf(
+        FilterType.Gray to FilterInfo(
+                cls = FilterGrayScale::class,
+                createInstance = { FilterGrayScale() },
+                name = "GrayScale",
+                valid = { input -> input.channels() >= 3 }
+        ),
+        FilterType.Thresh to FilterInfo(
+                cls = FilterThreshold::class,
+                createInstance = { FilterThreshold() },
+                name = "Threshold"
+        ),
+        FilterType.Identity to FilterInfo(
+                cls = FilterIdentity::class,
+                createInstance = { FilterIdentity() },
+                name = "Identity",
+                showInMenu = true
+        )
+)
+
+
+
+

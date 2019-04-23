@@ -35,8 +35,7 @@
             app:layout_constraintEnd_toStartOf="@+id/info"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:uri="@{draft.image}" />
-        <!--todo change image to thumb-->
+            app:uri="@{draft.thumb}" />
 
         <TextView
             android:id="@+id/info"

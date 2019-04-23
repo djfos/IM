@@ -11,7 +11,7 @@
 
         <variable
             name="filter"
-            type="com.djfos.im.filter.IFilter" />
+            type="com.djfos.im.filter.AbstractFilter" />
 
         <variable
             name="valid"

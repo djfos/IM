@@ -71,6 +71,12 @@ class DraftAdapter : RecyclerView.Adapter<DraftAdapter.ViewHolder>() {
         return mDraftList[position].id
     }
 
+    fun getSelectedDraft(): List<Draft> {
+        return mDraftList.filter { draft ->
+            tracker.selection.contains(draft.id)
+        }
+    }
+
 
 }
 

@@ -13,12 +13,13 @@ import java.lang.reflect.Field
  */
 fun createControlPanel(
         context: Context,
-        filter: IFilter
-): Pair<ViewGroup, MutableLiveData<IFilter>> {
+        filter: AbstractFilter
+): Pair<ViewGroup, MutableLiveData<AbstractFilter>> {
+    //todo no reflection
     val layout = LinearLayout(context)
     layout.orientation = LinearLayout.VERTICAL
 
-    val mediator = MutableLiveData<IFilter>()
+    val mediator = MutableLiveData<AbstractFilter>()
 
     for (field in filter::class.java.declaredFields) {
         field.isAccessible = true //make no private shouldStart!!
@@ -27,9 +28,6 @@ fun createControlPanel(
             val view = when (it.controlType) {
                 ControlType.Slider -> {
                     seekBar(context, filter, field, mediator)
-                }
-                else -> {
-                    throw Exception("unexpected type ${it.controlType}")
                 }
             }
 
@@ -42,9 +40,9 @@ fun createControlPanel(
 
 private fun seekBar(
         context: Context,
-        filter: IFilter,
+        filter: AbstractFilter,
         field: Field,
-        mediator: MutableLiveData<IFilter>
+        mediator: MutableLiveData<AbstractFilter>
 ): SeekBar {
     val value = field.get(filter) as Int
     val seekBar = SeekBar(context)
