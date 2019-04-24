@@ -7,7 +7,6 @@ import org.opencv.imgproc.Imgproc
 class FilterThreshold : AbstractFilter() {
     override val type = FilterType.Thresh
 
-    @FilterControl(ControlType.Slider)
     var threshold: Int = 125
 
     override fun apply(input: Mat): Mat {

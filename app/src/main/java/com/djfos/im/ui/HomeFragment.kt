@@ -177,7 +177,6 @@ class HomeFragment : Fragment() {
         }
     }
 
-    //todo bug image not display
     private fun selectPhoto() {
         requestPermission(requireActivity())
         if (!hasPermission(requireActivity()))

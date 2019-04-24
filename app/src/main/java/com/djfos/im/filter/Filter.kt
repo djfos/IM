@@ -1,14 +1,18 @@
 package com.djfos.im.filter
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.databinding.Observable
-import androidx.databinding.ObservableInt
+import android.widget.SeekBar
 import androidx.lifecycle.MutableLiveData
+import com.djfos.im.R
 import com.djfos.im.databinding.ControlSeekbarBinding
 import org.opencv.core.Mat
 import kotlin.reflect.KClass
 
+/**
+ * only hold data for filtering
+ */
 abstract class AbstractFilter {
     abstract val type: FilterType
     abstract fun apply(input: Mat): Mat
@@ -18,19 +22,19 @@ abstract class AbstractFilter {
     }
 }
 
+/**
+ * represent the key of filters
+ */
 enum class FilterType {
     Gray, Thresh, Identity
 }
 
 
-enum class ControlType {
-    Slider,
-}
-
+/**
+ * lazy cached array of all filter type enums,used to get enum from its ordinal
+ */
 val FilterTypeValues by lazy { FilterType.values() }
 
-@Target(AnnotationTarget.FIELD)
-annotation class FilterControl(val controlType: ControlType)
 
 data class FilterInfo(
         val cls: KClass<out AbstractFilter>,
@@ -41,7 +45,9 @@ data class FilterInfo(
         val valid: (input: Mat) -> Boolean = { true }
 )
 
-
+/**
+ * filter metadata
+ */
 val filterInfos: Map<FilterType, FilterInfo> = mapOf(
         FilterType.Identity to FilterInfo(
                 cls = FilterIdentity::class,
@@ -63,32 +69,40 @@ val filterInfos: Map<FilterType, FilterInfo> = mapOf(
         )
 )
 
-
+/**
+ * create filter control,always return a LiveData that emits new filter state.
+ */
 fun buildFilterControl(filter: AbstractFilter): (controlPanel: ViewGroup) -> MutableLiveData<AbstractFilter> {
     return when (filter.type) {
         FilterType.Thresh -> {
             { controlPanel ->
                 val mediator = MutableLiveData<AbstractFilter>()
                 if (filter is FilterThreshold) {
+                    controlPanel.removeAllViews()
                     val binding = ControlSeekbarBinding.inflate(
                             LayoutInflater.from(controlPanel.context),
                             controlPanel,
                             true
                     )
 
-                    val observableInt = ObservableInt()
+                    binding.textTitle.setText(R.string.threshold)
+                    binding.value = filter.threshold
+                    binding.seekBar.apply {
+                        max = 257 // -1 ~ 256
+                        progress = filter.threshold
+                    }
 
-                    binding.title = "threshold"
-                    binding.max = 256
-                    binding.value = observableInt
 
-                    observableInt.set(filter.threshold)
-
-                    observableInt.addOnPropertyChangedCallback(object : Observable.OnPropertyChangedCallback() {
-                        override fun onPropertyChanged(sender: Observable?, propertyId: Int) {
-                            filter.threshold = observableInt.get()
+                    binding.seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                        override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                            Log.d("onProgressChanged", "onProgressChanged: $progress")
+                            filter.threshold = progress - 1
+                            binding.value = progress - 1
                             mediator.value = filter
                         }
+
+                        override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+                        override fun onStopTrackingTouch(seekBar: SeekBar?) {}
                     })
                 }
 

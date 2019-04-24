@@ -7,7 +7,6 @@ import android.util.Log
 import android.view.*
 import android.widget.FrameLayout
 import android.widget.ImageView
-import android.widget.ViewSwitcher
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.fragment.app.Fragment
@@ -18,22 +17,33 @@ import com.bumptech.glide.load.engine.bitmap_recycle.BitmapPool
 import com.djfos.im.R
 import com.djfos.im.adapter.HistoryAdapter
 import com.djfos.im.databinding.FragmentAdjustPageBinding
-import com.djfos.im.filter.*
+import com.djfos.im.filter.AbstractFilter
+import com.djfos.im.filter.FilterTypeValues
+import com.djfos.im.filter.buildFilterControl
+import com.djfos.im.filter.filterInfos
 import com.djfos.im.util.GlideApp
 import com.djfos.im.util.Injector
-import com.djfos.im.util.createControlPanel
 import com.djfos.im.viewModel.AdjustPageViewModel
+import io.reactivex.disposables.Disposable
+import io.reactivex.subjects.PublishSubject
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.opencv.android.Utils
 import org.opencv.core.Mat
+import java.util.concurrent.TimeUnit
 
 
 class AdjustPageFragment : Fragment() {
     private lateinit var viewModel: AdjustPageViewModel
     private lateinit var pool: BitmapPool
-    private lateinit var viewSwitcher: ViewSwitcher
+    private lateinit var resultView: ImageView
     private var previous: Bitmap? = null
     private lateinit var controlPanel: FrameLayout
     private lateinit var historyAdapter: HistoryAdapter
+    private var disposable: Disposable? = null
+
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val binding = FragmentAdjustPageBinding.inflate(inflater, container, false)
@@ -41,10 +51,9 @@ class AdjustPageFragment : Fragment() {
         val args = AdjustPageFragmentArgs.fromBundle(requireArguments())
         val factory = Injector.provideAViewModelFactory(requireActivity().application, args.id)
         viewModel = ViewModelProviders.of(this, factory).get(AdjustPageViewModel::class.java)
-
         // set class properties
-        viewSwitcher = binding.resultView
-        Log.d(TAG, "onCreateView: viewSwitcher ${viewSwitcher.width} x ${viewSwitcher.height}")
+        resultView = binding.resultView
+        Log.d(TAG, "onCreateView: resultView ${resultView.width} x ${resultView.height}")
         controlPanel = binding.controlPanel
         pool = GlideApp.get(requireContext()).bitmapPool
 
@@ -68,15 +77,17 @@ class AdjustPageFragment : Fragment() {
         }
         syncHistory()
 
+        val subject = PublishSubject.create<AbstractFilter>()
+
+        disposable = subject.throttleLatest(10, TimeUnit.MILLISECONDS).subscribe { filter ->
+            draw(filter.apply(viewModel.previousResult))
+            Log.d("observe", "filter: $filter")
+            viewModel.currentFilter = filter
+        }
 
         viewModel.mediator.observe({ lifecycle }) { filterHolder ->
             // subscribe to  change of  filter control
-            filterHolder.observe({ lifecycle }) { filter ->
-                draw(filter.apply(viewModel.previousResult))
-                Log.d("observe", "filter: $filter")
-                viewModel.currentFilter = filter
-
-            }
+            filterHolder.observe({ lifecycle }) { filter -> subject.onNext(filter) }
         }
 
         fallback(viewModel.history.lastIndex)
@@ -173,21 +184,21 @@ class AdjustPageFragment : Fragment() {
      * draw the given mat to  the result view
      */
     private fun draw(mat: Mat) {
-        Log.d("draw", "draw: $mat")
-        // todo use extension function
-        viewModel.currentResult = mat
+        GlobalScope.launch {
+            Log.d("draw", "draw: $mat")
 
-        if (previous != null) {
-            //clean up
-            pool.put(previous)
+            viewModel.currentResult = mat
+
+            if (previous != null) {
+                //clean up
+                pool.put(previous)
+            }
+            val bitmap = pool.getDirty(mat.width(), mat.height(), Bitmap.Config.ARGB_8888)
+            Utils.matToBitmap(mat, bitmap)
+            withContext(Dispatchers.Main) {
+                resultView.setImageBitmap(bitmap)
+            }
         }
-        val bitmap = pool.getDirty(mat.width(), mat.height(), Bitmap.Config.ARGB_8888)
-        Utils.matToBitmap(mat, bitmap)
-        val next = viewSwitcher.nextView as ImageView
-//        GlideApp.with(this as Fragment).load(bitmap).into(next)
-        next.setImageBitmap(bitmap)
-        viewSwitcher.showNext()
-
     }
 
     /**

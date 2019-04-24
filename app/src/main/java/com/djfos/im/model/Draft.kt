@@ -2,8 +2,8 @@ package com.djfos.im.model
 
 import androidx.lifecycle.LiveData
 import androidx.room.*
-import com.djfos.im.filter.FilterIdentity
 import com.djfos.im.filter.AbstractFilter
+import com.djfos.im.filter.FilterIdentity
 import kotlinx.coroutines.runBlocking
 import java.io.File
 

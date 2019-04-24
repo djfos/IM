@@ -9,13 +9,11 @@ import com.bumptech.glide.load.engine.bitmap_recycle.BitmapPool
 import com.djfos.im.filter.AbstractFilter
 import com.djfos.im.model.Draft
 import com.djfos.im.model.DraftRepository
-import com.djfos.im.ui.AdjustPageFragment
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.opencv.android.Utils
 import org.opencv.core.Mat
 import java.io.FileOutputStream
-import java.io.FileWriter
 
 private const val TAG = "AdjustPageViewModel"
 
