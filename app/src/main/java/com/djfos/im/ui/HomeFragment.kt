@@ -53,7 +53,7 @@ class HomeFragment : Fragment() {
 
         draftAdapter = DraftAdapter()
 
-        viewModel.allDrafts.observe({ lifecycle }) { drafts -> draftAdapter.setDraft(drafts) }
+        viewModel.allDrafts.observe({ lifecycle }) { drafts -> draftAdapter.submitList(drafts) }
 
         binding.draftList.apply {
             setHasFixedSize(true)

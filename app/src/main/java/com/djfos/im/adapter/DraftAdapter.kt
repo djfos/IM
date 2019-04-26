@@ -9,14 +9,16 @@ import androidx.navigation.findNavController
 import androidx.recyclerview.selection.ItemDetailsLookup
 import androidx.recyclerview.selection.ItemKeyProvider
 import androidx.recyclerview.selection.SelectionTracker
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.djfos.im.databinding.ListItemDraftBinding
 import com.djfos.im.model.Draft
 import com.djfos.im.ui.HomeFragmentDirections
 
 
-class DraftAdapter : RecyclerView.Adapter<DraftAdapter.ViewHolder>() {
-    private var mDraftList = emptyList<Draft>()
+class DraftAdapter : ListAdapter<Draft, DraftAdapter.ViewHolder>(DraftDiffCallback()) {
+    private var mDraftList: List<Draft>? = emptyList()
     lateinit var tracker: SelectionTracker<Long>
 
     init {
@@ -38,7 +40,7 @@ class DraftAdapter : RecyclerView.Adapter<DraftAdapter.ViewHolder>() {
 
 
         fun getItemDetails() = object : ItemDetailsLookup.ItemDetails<Long>() {
-            override fun getSelectionKey(): Long = itemId
+            override fun getSelectionKey(): Long = mdraft.id
             override fun getPosition(): Int = adapterPosition
         }
 
@@ -50,33 +52,41 @@ class DraftAdapter : RecyclerView.Adapter<DraftAdapter.ViewHolder>() {
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val draft = mDraftList[position]
+        val draft = getItem(position)
         holder.bind(draft, position, View.OnClickListener {
             it.findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToAdjustPage(draft.id))
         })
     }
 
-    internal fun setDraft(draftList: List<Draft>) {
-        Log.d("setDraft", "setDraft: $draftList")
-        this.mDraftList = draftList
-        notifyDataSetChanged()
+    override fun submitList(list: List<Draft>?) {
+        Log.d("submitList", "submitList: %list")
+        super.submitList(list)
+        mDraftList = list
     }
 
-    override fun getItemCount() = mDraftList.size
-
     override fun getItemId(position: Int): Long {
-        return mDraftList[position].id
+        return getItem(position).id
     }
 
     fun getSelectedDraft(): List<Draft> {
-        return mDraftList.filter { draft ->
+        return mDraftList?.filter { draft ->
             tracker.selection.contains(draft.id)
-        }
+        } ?: emptyList()
     }
 
 
 }
 
+private class DraftDiffCallback : DiffUtil.ItemCallback<Draft>() {
+
+    override fun areItemsTheSame(oldItem: Draft, newItem: Draft): Boolean {
+        return oldItem.id == newItem.id
+    }
+
+    override fun areContentsTheSame(oldItem: Draft, newItem: Draft): Boolean {
+        return oldItem.latestModifyTime == newItem.latestModifyTime
+    }
+}
 
 class DraftLookup(private val recyclerView: RecyclerView) : ItemDetailsLookup<Long>() {
     override fun getItemDetails(event: MotionEvent): ItemDetails<Long>? {
