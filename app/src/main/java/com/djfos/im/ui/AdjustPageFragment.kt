@@ -27,7 +27,6 @@ import com.djfos.im.util.Injector
 import com.djfos.im.viewModel.AdjustPageViewModel
 import io.reactivex.disposables.Disposable
 import io.reactivex.subjects.PublishSubject
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.GlobalScope
@@ -46,7 +45,6 @@ class AdjustPageFragment : Fragment() {
     private lateinit var controlPanel: FrameLayout
     private lateinit var historyAdapter: HistoryAdapter
     private var disposable: Disposable? = null
-
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val binding = FragmentAdjustPageBinding.inflate(inflater, container, false)
@@ -101,6 +99,14 @@ class AdjustPageFragment : Fragment() {
                 fallback(viewModel.history.lastIndex)
             }
         }
+
+        // save when back button pressed
+        requireActivity().onBackPressedDispatcher.addCallback({ lifecycle }) {
+            Log.d(TAG, "onCreateView: onBackPressedDispatcher")
+            viewModel.save(pool)
+            false
+        }
+
 
         setHasOptionsMenu(true)
 
@@ -159,6 +165,7 @@ class AdjustPageFragment : Fragment() {
             R.id.group_adjust_page_action -> when (item.itemId) {
                 R.id.done -> {
                     Log.d(TAG, "onOptionsItemSelected: save")
+                    viewModel.save(pool)
                     goHome()
                     true
                 }
@@ -190,12 +197,6 @@ class AdjustPageFragment : Fragment() {
         }
 
     }
-
-    override fun onPause() {
-        super.onPause()
-        viewModel.save(pool)
-    }
-
 
     /**
      * push history list to the  adapter
@@ -240,7 +241,7 @@ class AdjustPageFragment : Fragment() {
             }
             val bitmap = pool.getDirty(mat.width(), mat.height(), Bitmap.Config.ARGB_8888)
             Utils.matToBitmap(mat, bitmap)
-            withContext(Dispatchers.Main) {
+            withContext(Main) {
                 resultView.setImageBitmap(bitmap)
             }
         }

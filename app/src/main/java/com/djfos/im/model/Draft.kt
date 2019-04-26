@@ -1,10 +1,10 @@
 package com.djfos.im.model
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.room.*
 import com.djfos.im.filter.AbstractFilter
 import com.djfos.im.filter.FilterIdentity
-import kotlinx.coroutines.runBlocking
 import java.io.File
 
 @Entity
@@ -41,21 +41,19 @@ interface DraftDao {
 
 class DraftRepository private constructor(private val dao: DraftDao) {
 
-    lateinit var allDrafts: LiveData<List<Draft>>
-
-    init {
-        runBlocking {
-            allDrafts = dao.getAll()
-        }
-    }
+    val allDrafts: LiveData<List<Draft>> = dao.getAll()
 
     fun getDraft(id: Long): LiveData<Draft> = dao.getById(id)
 
     fun getDraftSimple(id: Long): Draft = dao.getByIdSimple(id)
 
-    fun saveDraft(draft: Draft) = dao.insert(draft)
+    fun saveDraft(draft: Draft): Long {
+        Log.d("DraftRepository", "saveDraft: $")
+        return dao.insert(draft)
+    }
 
     fun dropDraft(draft: Draft) {
+        Log.d("DraftRepository", "dropDraft: $")
         deleteThumb(draft)
         dao.delete(listOf(draft.id))
     }

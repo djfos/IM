@@ -57,6 +57,7 @@ class DraftAdapter : RecyclerView.Adapter<DraftAdapter.ViewHolder>() {
     }
 
     internal fun setDraft(draftList: List<Draft>) {
+        Log.d("setDraft", "setDraft: $draftList")
         this.mDraftList = draftList
         notifyDataSetChanged()
     }
