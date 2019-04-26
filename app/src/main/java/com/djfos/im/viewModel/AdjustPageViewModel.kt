@@ -9,8 +9,10 @@ import com.bumptech.glide.load.engine.bitmap_recycle.BitmapPool
 import com.djfos.im.filter.AbstractFilter
 import com.djfos.im.model.Draft
 import com.djfos.im.model.DraftRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.opencv.android.Utils
 import org.opencv.core.Mat
 import java.io.FileOutputStream
@@ -18,12 +20,12 @@ import java.io.FileOutputStream
 private const val TAG = "AdjustPageViewModel"
 
 class AdjustPageViewModel(
-        private val draftRepository: DraftRepository,
-        private val draft: Draft,
-        private val origin: Mat
+        private val draftRepository: DraftRepository
 ) : ViewModel() {
+    lateinit var draft: Draft
+    lateinit var origin: Mat
 
-    var previousResult: Mat = origin
+    lateinit var previousResult: Mat
     var currentResult: Mat? = null
 
     var history: MutableList<AbstractFilter>
@@ -94,17 +96,19 @@ class AdjustPageViewModel(
                 .apply { add(filter) }
 
     }
+
+    suspend fun getDraft(id: Long): Draft {
+        return withContext(Dispatchers.IO) { draftRepository.getDraftSimple(id) }
+    }
 }
 
 
 class AViewModelFactory(
-        private val draftRepository: DraftRepository,
-        private val draft: Draft,
-        private val origin: Mat
+        private val draftRepository: DraftRepository
 ) : ViewModelProvider.Factory {
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return AdjustPageViewModel(draftRepository, draft, origin) as T
+        return AdjustPageViewModel(draftRepository) as T
     }
 }

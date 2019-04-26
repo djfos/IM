@@ -1,6 +1,7 @@
 package com.djfos.im.ui
 
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.util.Log
@@ -27,6 +28,8 @@ import com.djfos.im.viewModel.AdjustPageViewModel
 import io.reactivex.disposables.Disposable
 import io.reactivex.subjects.PublishSubject
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -48,8 +51,8 @@ class AdjustPageFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val binding = FragmentAdjustPageBinding.inflate(inflater, container, false)
 
-        val args = AdjustPageFragmentArgs.fromBundle(requireArguments())
-        val factory = Injector.provideAViewModelFactory(requireActivity().application, args.id)
+        // set viewModel
+        val factory = Injector.provideAViewModelFactory(requireContext())
         viewModel = ViewModelProviders.of(this, factory).get(AdjustPageViewModel::class.java)
         // set class properties
         resultView = binding.resultView
@@ -75,8 +78,8 @@ class AdjustPageFragment : Fragment() {
             it.layoutManager = LinearLayoutManager(requireContext())
             it.adapter = historyAdapter
         }
-        syncHistory()
 
+        // set control
         val subject = PublishSubject.create<AbstractFilter>()
 
         disposable = subject.throttleLatest(10, TimeUnit.MILLISECONDS).subscribe { filter ->
@@ -90,12 +93,45 @@ class AdjustPageFragment : Fragment() {
             filterHolder.observe({ lifecycle }) { filter -> subject.onNext(filter) }
         }
 
-        fallback(viewModel.history.lastIndex)
+        val args = AdjustPageFragmentArgs.fromBundle(requireArguments())
+        GlobalScope.launch(IO) {
+            init(requireContext(), args.id)
+            withContext(Main) {
+                syncHistory()
+                fallback(viewModel.history.lastIndex)
+            }
+        }
+
         setHasOptionsMenu(true)
 
         return binding.root
     }
 
+    /**
+     * provide necessary data asynchronously
+     */
+    private suspend fun init(context: Context, id: Long) {
+        val draft = viewModel.getDraft(id)
+        val width = resources.displayMetrics.widthPixels
+        val height = resources.displayMetrics.heightPixels
+        val origin = withContext(IO) {
+            GlideApp.with(context)
+                    .asBitmap()
+                    .load(draft.image)
+                    .override(width, height)
+                    .submit()
+                    .get().let { bitmap ->
+                        val mat = Mat()
+                        Utils.bitmapToMat(bitmap, mat)
+                        pool.put(bitmap)
+                        mat
+                    }
+        }
+
+        viewModel.draft = draft
+        viewModel.origin = origin
+        viewModel.previousResult = origin
+    }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.adjust_page_menu, menu)
