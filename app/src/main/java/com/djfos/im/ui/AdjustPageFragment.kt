@@ -168,6 +168,15 @@ class AdjustPageFragment : Fragment() {
                     goHome()
                     true
                 }
+                R.id.save -> {
+                    viewModel.saveToFile(requireContext(), pool)
+                    goHome()
+                    true
+                }
+                R.id.share -> {
+                    viewModel.share(requireActivity(), pool)
+                    true
+                }
                 else -> super.onOptionsItemSelected(item)
             }
             R.id.group_filter_menu -> {

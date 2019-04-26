@@ -13,4 +13,6 @@
     <string name="text">text</string>
     <string name="action_new" >new</string>
     <string name="threshold">threshold</string>
+    <string name="save">save</string>
+    <string name="share">share</string>
 </resources>

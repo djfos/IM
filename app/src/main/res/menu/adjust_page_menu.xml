@@ -13,6 +13,14 @@
             android:icon="@drawable/ic_done_black_24dp"
             android:title="@string/done"
             app:showAsAction="ifRoom" />
+        <item
+            android:id="@+id/save"
+            android:title="@string/save"
+            app:showAsAction="never" />
+        <item
+            android:id="@+id/share"
+            android:title="@string/share"
+            app:showAsAction="never" />
 
         <item
             android:id="@+id/filter_menu"

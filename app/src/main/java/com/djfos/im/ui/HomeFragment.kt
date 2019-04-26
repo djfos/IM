@@ -144,6 +144,7 @@ class HomeFragment : Fragment() {
             REQUEST_IMAGE_PICK -> if (resultCode == RESULT_OK) {
                 if (data == null) return
                 val uri = data.data ?: return
+                requireActivity().contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 Log.d(TAG, "onActivityResult: uri $uri")
                 toAdjustPage(uri)
             }
@@ -182,7 +183,8 @@ class HomeFragment : Fragment() {
         if (!hasPermission(requireActivity()))
             return
 
-        val intent = Intent(Intent.ACTION_GET_CONTENT)
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
+
         intent.type = "image/*"
         if (intent.resolveActivity(requireActivity().packageManager) != null) {
             startActivityForResult(intent, REQUEST_IMAGE_PICK)
