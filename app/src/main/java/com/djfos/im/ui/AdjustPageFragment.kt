@@ -11,7 +11,6 @@ import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.load.engine.bitmap_recycle.BitmapPool
@@ -23,7 +22,6 @@ import com.djfos.im.filter.FilterTypeValues
 import com.djfos.im.filter.buildFilterControl
 import com.djfos.im.filter.filterInfos
 import com.djfos.im.util.GlideApp
-import com.djfos.im.util.Injector
 import com.djfos.im.viewModel.AdjustPageViewModel
 import io.reactivex.disposables.Disposable
 import io.reactivex.subjects.PublishSubject
@@ -32,13 +30,14 @@ import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.opencv.android.Utils
 import org.opencv.core.Mat
 import java.util.concurrent.TimeUnit
 
 
 class AdjustPageFragment : Fragment() {
-    private lateinit var viewModel: AdjustPageViewModel
+    private val viewModel: AdjustPageViewModel  by viewModel()
     private lateinit var pool: BitmapPool
     private lateinit var resultView: ImageView
     private var previous: Bitmap? = null
@@ -49,9 +48,6 @@ class AdjustPageFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val binding = FragmentAdjustPageBinding.inflate(inflater, container, false)
 
-        // set viewModel
-        val factory = Injector.provideAViewModelFactory(requireContext())
-        viewModel = ViewModelProviders.of(this, factory).get(AdjustPageViewModel::class.java)
         // set class properties
         resultView = binding.resultView
         Log.d(TAG, "onCreateView: resultView ${resultView.width} x ${resultView.height}")

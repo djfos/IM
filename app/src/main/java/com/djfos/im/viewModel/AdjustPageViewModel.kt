@@ -9,7 +9,6 @@ import androidx.core.app.ShareCompat
 import androidx.core.content.FileProvider
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.load.engine.bitmap_recycle.BitmapPool
 import com.djfos.im.filter.AbstractFilter
 import com.djfos.im.model.Draft
@@ -27,9 +26,7 @@ import java.io.FileOutputStream
 
 private const val TAG = "AdjustPageViewModel"
 
-class AdjustPageViewModel(
-        private val draftRepository: DraftRepository
-) : ViewModel() {
+class AdjustPageViewModel(private val draftRepository: DraftRepository) : ViewModel() {
     lateinit var draft: Draft
     lateinit var origin: Mat
 
@@ -187,16 +184,5 @@ class AdjustPageViewModel(
         } else {
             Toast.makeText(activity, "can not share this file", Toast.LENGTH_SHORT).show()
         }
-    }
-}
-
-
-class AViewModelFactory(
-        private val draftRepository: DraftRepository
-) : ViewModelProvider.Factory {
-
-    @Suppress("UNCHECKED_CAST")
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return AdjustPageViewModel(draftRepository) as T
     }
 }

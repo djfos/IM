@@ -4,7 +4,6 @@ import androidx.annotation.WorkerThread
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import com.djfos.im.model.Draft
 import com.djfos.im.model.DraftRepository
 import com.djfos.im.util.createImageFile
@@ -29,13 +28,5 @@ class HomePageViewModel(private val draftRepository: DraftRepository) : ViewMode
         GlobalScope.launch {
             draftRepository.dropDrafts(drafts)
         }
-    }
-}
-
-class HomePageViewModelFactory(private val repository: DraftRepository) : ViewModelProvider.NewInstanceFactory() {
-
-    @Suppress("UNCHECKED_CAST")
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return HomePageViewModel(repository) as T
     }
 }

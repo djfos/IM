@@ -59,10 +59,10 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-extensions:2.1.0-alpha04' // live data & view model
     implementation 'com.google.code.gson:gson:2.8.5'
     // room
-    implementation "androidx.room:room-runtime:2.1.0-alpha06"
-    implementation "androidx.room:room-ktx:2.1.0-alpha06"
-    kapt "androidx.room:room-compiler:2.1.0-alpha06"
-    androidTestImplementation "androidx.room:room-testing:2.1.0-alpha06"
+    implementation "androidx.room:room-runtime:2.1.0-alpha07"
+    implementation "androidx.room:room-ktx:2.1.0-alpha07"
+    kapt "androidx.room:room-compiler:2.1.0-alpha07"
+    androidTestImplementation "androidx.room:room-testing:2.1.0-alpha07"
     // navigation
     implementation "androidx.navigation:navigation-fragment-ktx:2.0.0"
     implementation "androidx.navigation:navigation-ui-ktx:2.0.0"
@@ -79,6 +79,10 @@ dependencies {
     implementation 'com.beust:klaxon:5.0.1'
     //others
     implementation 'io.reactivex.rxjava2:rxjava:2.2.8'
+    // di koin
+    implementation "org.koin:koin-android:2.0.0-rc-2"
+    implementation "org.koin:koin-androidx-scope:2.0.0-rc-2"
+    implementation "org.koin:koin-androidx-viewmodel:2.0.0-rc-2"
     // openCV
     implementation project(':opencv-4.0.1')
     // test
@@ -92,7 +96,7 @@ dependencies {
     androidTestImplementation 'androidx.test:rules:1.1.1'
     androidTestImplementation 'androidx.test.ext:junit:1.1.0'
     androidTestImplementation 'androidx.test.ext:truth:1.1.0'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0-alpha03'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0-alpha04'
 }
 
 repositories {

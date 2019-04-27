@@ -12,7 +12,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.selection.SelectionPredicates
 import androidx.recyclerview.selection.SelectionTracker
@@ -24,10 +23,10 @@ import com.djfos.im.adapter.DraftLookup
 import com.djfos.im.adapter.RecyclerViewIdKeyProvider
 import com.djfos.im.databinding.FragmentHomeBinding
 import com.djfos.im.util.*
-import com.djfos.im.util.Injector.provideHomePageViewModelFactory
 import com.djfos.im.viewModel.HomePageViewModel
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.io.File
 import java.io.IOException
 
@@ -36,15 +35,12 @@ class HomeFragment : Fragment() {
     private lateinit var mTracker: SelectionTracker<Long>
     private var image: File? = null
     private var actionMode: ActionMode? = null
-    private lateinit var viewModel: HomePageViewModel
+    private val viewModel by viewModel<HomePageViewModel>()
     private lateinit var draftAdapter: DraftAdapter
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val binding = FragmentHomeBinding.inflate(inflater, container, false)
 
-        viewModel = ViewModelProviders
-                .of(this, provideHomePageViewModelFactory(requireContext()))
-                .get(HomePageViewModel::class.java)
         // set menu
         (requireActivity() as AppCompatActivity).apply {
             setSupportActionBar(binding.toolbar)

@@ -39,7 +39,7 @@ interface DraftDao {
     fun getAll(): LiveData<List<Draft>>
 }
 
-class DraftRepository private constructor(private val dao: DraftDao) {
+class DraftRepository(private val dao: DraftDao) {
 
     val allDrafts: LiveData<List<Draft>> = dao.getAll()
 
@@ -66,17 +66,5 @@ class DraftRepository private constructor(private val dao: DraftDao) {
     private fun deleteThumb(draft: Draft) {
         File(draft.thumb).apply { if (exists()) delete() }
     }
-
-
-    companion object {
-        @Volatile
-        private var instance: DraftRepository? = null
-
-        fun getInstance(draftDao: DraftDao) =
-                instance ?: synchronized(this) {
-                    instance ?: DraftRepository(draftDao).also { instance = it }
-                }
-    }
-
 }
 
